@@ -14,19 +14,20 @@ if (dbPath.startsWith('/data')) {
 
     console.log(`[Migration] Checking: VolumeDB=${dbExistsInVolume}, LocalDB=${localDbExists}`);
 
-    // If it doesn't exist in Volume OR is very small (potentially just initialized/empty)
-    // and we have a local one to migrate
-    if (localDbExists && (!dbExistsInVolume || fs.statSync(dbPath).size < 10000)) {
+    const forceMigration = process.env.FORCE_MIGRATION === 'true';
+
+    // If it doesn't exist in Volume OR we are forcing it
+    if (localDbExists && (!dbExistsInVolume || forceMigration)) {
         try {
             fs.copyFileSync(localDbPath, dbPath);
-            console.log('[Migration] SUCCESS: Database copied to Volume mount.');
+            console.log('[Migration] SUCCESS: Database copied to Volume mount (Forced OR New).');
         } catch (e) {
             console.error('[Migration] ERROR:', e.message);
         }
     } else if (!localDbExists) {
         console.log('[Migration] Skip: No local contabilidad.db found in /app root.');
     } else {
-        console.log('[Migration] Skip: Database already exists and has data in Volume.');
+        console.log('[Migration] Skip: Database already exists. Set FORCE_MIGRATION=true to overwrite.');
     }
 }
 
