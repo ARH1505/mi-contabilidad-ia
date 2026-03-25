@@ -1,0 +1,14 @@
+# Dependencias
+node_modules
+
+# Configuración sensible (API Keys)
+.env
+
+# Base de datos local (PÁSALO UNA VEZ, LUEGO VUELVE A BLOQUEARLO)
+contabilidad.db
+
+# Otros
+*.log
+.DS_Store
+dist
+build
