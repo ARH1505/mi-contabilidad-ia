@@ -1,0 +1,205 @@
+<!DOCTYPE strict html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contador IA | Sistema Contable Colombiano</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-chart-pie"></i>
+                <h2>Contador IA</h2>
+            </div>
+            
+            <ul class="nav-links">
+                <li class="active" data-view="chat-view">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>Asistente IA</span>
+                </li>
+                <li data-view="ledger-view">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Libro Diario</span>
+                </li>
+                <li data-view="puc-view">
+                    <i class="fa-solid fa-list-ol"></i>
+                    <span>Ver PUC</span>
+                </li>
+                <li data-view="results-view">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Est. de Resultados</span>
+                </li>
+                <li data-view="help-view">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Consultas Contables</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <!-- Header -->
+            <header>
+                <div class="header-title">
+                    <h1 id="view-title">Registro de Asientos con Inteligencia Artificial</h1>
+                    <p id="view-subtitle">Escríbele al agente como si fuera tu contador de confianza.</p>
+                </div>
+            </header>
+
+            <!-- Views -->
+            <div class="views-wrapper">
+                
+                <!-- View: Chat (AI) -->
+                <div id="chat-view" class="view active-view">
+                    <div class="chat-container">
+                        <div class="chat-history" id="chat-messages">
+                            <div class="message system-msg">
+                                <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                                <div class="msg-content">
+                                    <p>¡Hola! Soy tu <b>Contador Profesional Colombiano</b> potenciado por IA. Puedes decirme cosas como:</p>
+                                    <ul>
+                                        <li>"Se pagó el arriendo de la oficina por $1.500.000 mediante transferencia bancaria."</li>
+                                        <li>"Vendimos mercancía por $5.000.000 a crédito al cliente Juan Pérez."</li>
+                                        <li>"Iniciamos operaciones con un aporte social de $20.000.000 en efectivo."</li>
+                                    </ul>
+                                    <p>Yo analizaré el movimiento y generaré el asiento contable (partida doble) automáticamente según nuestro PUC.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-input-area">
+                            <textarea id="ai-input" placeholder="Escribe el movimiento contable aquí..." rows="2"></textarea>
+                            <button id="send-btn" class="btn-primary">
+                                <i class="fa-solid fa-paper-plane"></i> Registrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View: Ledger (Libro Diario) -->
+                <div id="ledger-view" class="view">
+                    <div class="view-header">
+                        <div class="actions">
+                            <button id="export-excel-btn" class="btn-success">
+                                <i class="fa-solid fa-file-excel"></i> Descargar Excel
+                            </button>
+                            <button id="refresh-ledger" class="btn-icon">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-table-container">
+                        <table class="glass-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción de Transacción</th>
+                                    <th>Código</th>
+                                    <th>Cuenta</th>
+                                    <th class="amount">Débito</th>
+                                    <th class="amount">Crédito</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledger-body">
+                                <tr><td colspan="6" style="text-align:center;">Cargando libro diario...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- View: PUC -->
+                <div id="puc-view" class="view">
+                    <div class="glass-table-container">
+                        <table class="glass-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre de Cuenta</th>
+                                    <th>Clase</th>
+                                    <th class="amount">Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="puc-body">
+                                <tr><td colspan="4" style="text-align:center;">Cargando PUC...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- View: Estado de Resultados -->
+                <div id="results-view" class="view">
+                    <div class="financial-report-container" id="results-body">
+                        <div style="text-align:center; padding: 40px;">
+                            <div class="typing-indicator" style="justify-content:center"><span></span><span></span><span></span></div>
+                            <p style="margin-top:20px; color:var(--text-secondary);">Calculando Estado de Resultados...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View: Ayuda IA (Consultas) -->
+                <div id="help-view" class="view">
+                    <div class="chat-container">
+                        <div class="chat-history" id="help-messages">
+                            <div class="message system-msg">
+                                <div class="avatar"><i class="fa-solid fa-graduation-cap"></i></div>
+                                <div class="msg-content">
+                                    ¡Hola! Soy tu Asesor Contable de IA. Pregúntame sobre cómo contabilizar operaciones, dudas sobre impuestos en Colombia o sobre el Plan Único de Cuentas.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <textarea id="help-input" placeholder="Escribe tu consulta tributaria o contable aquí..." rows="2"></textarea>
+                            <button id="help-send-btn" class="btn-primary">
+                                <i class="fa-solid fa-paper-plane"></i> Preguntar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">Notificación</div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Editar Transacción <span id="edit-tx-id"></span></h2>
+                <button class="btn-icon close-modal" onclick="closeEditModal()" style="color:var(--text-secondary)"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="modal-body">
+                <label style="font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block;">Concepto / Descripción:</label>
+                <textarea id="edit-desc" rows="2" style="width:100%; margin-bottom: 20px;"></textarea>
+                
+                <h4 style="margin-bottom:12px; font-size:14px; border-bottom:1px solid var(--glass-border); padding-bottom:6px;">Asientos Contables</h4>
+                <div id="edit-entries-container" style="display:flex; flex-direction:column; gap:12px; max-height:40vh; overflow-y:auto; padding-right:8px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top:20px; border-top:1px solid var(--glass-border); padding-top:16px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-family:monospace; font-size:15px;" id="edit-totals">
+                    <!-- Totals populated here -->
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:12px;">
+                    <button class="btn-secondary" style="width:auto;" onclick="closeEditModal()">Cancelar</button>
+                    <button id="save-edit-btn" class="btn-primary" style="padding:10px 20px;" onclick="saveEditTx()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
