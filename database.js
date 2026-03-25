@@ -1,8 +1,34 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
+const fs = require('fs');
+
 // Allow overriding the database path for cloud environments with Persistent Volumes (like Railway)
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'contabilidad.db');
+
+// Migration logic: If we are in a cloud environment (Volume)
+if (dbPath.startsWith('/data')) {
+    const localDbPath = path.join(__dirname, 'contabilidad.db');
+    const dbExistsInVolume = fs.existsSync(dbPath);
+    const localDbExists = fs.existsSync(localDbPath);
+
+    console.log(`[Migration] Checking: VolumeDB=${dbExistsInVolume}, LocalDB=${localDbExists}`);
+
+    // If it doesn't exist in Volume OR is very small (potentially just initialized/empty)
+    // and we have a local one to migrate
+    if (localDbExists && (!dbExistsInVolume || fs.statSync(dbPath).size < 10000)) {
+        try {
+            fs.copyFileSync(localDbPath, dbPath);
+            console.log('[Migration] SUCCESS: Database copied to Volume mount.');
+        } catch (e) {
+            console.error('[Migration] ERROR:', e.message);
+        }
+    } else if (!localDbExists) {
+        console.log('[Migration] Skip: No local contabilidad.db found in /app root.');
+    } else {
+        console.log('[Migration] Skip: Database already exists and has data in Volume.');
+    }
+}
 
 // Connect to SQLite DB
 const db = new sqlite3.Database(dbPath, (err) => {
