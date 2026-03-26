@@ -7,8 +7,7 @@ const xlsx = require('xlsx');
 const db = require('./database');
 const fs = require('fs');
 const { processAccountingMovement, askAccountingQuestion } = require('./ai');
-const { generateBookingReportTemplate } = require('./reportTemplate');
-const pdf = require('html-pdf-node');
+const PDFDocument = require('pdfkit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -274,49 +273,107 @@ app.get('/api/export', (req, res) => {
     });
 });
 
-// Generate Booking Report PDF
+// Generate Booking Report PDF using PDFKit (100% Reliable)
 app.post('/api/generate-booking-report', async (req, res) => {
     try {
         const data = req.body;
-        
-        // Load logo and convert to base64
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+        // Stream PDF to response
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="Reserva_${data.nombreReserva.replace(/ /g, '_')}.pdf"`);
+        doc.pipe(res);
+
+        // --- Header Section ---
         const logoPath = path.join(__dirname, 'public', 'report_logo.png');
-        let logoBase64 = '';
         if (fs.existsSync(logoPath)) {
-            const logoBuffer = fs.readFileSync(logoPath);
-            logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+            doc.image(logoPath, 50, 45, { width: 140 });
         }
-        
-        data.logoBase64 = logoBase64;
-        
-        const html = generateBookingReportTemplate(data);
-        
-        const file = { content: html };
-        const options = { 
-            format: 'A4',
-            margin: { top: '0', right: '0', bottom: '0', left: '0' },
-            printBackground: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-            timeout: 60000 // 60 seconds timeout
+
+        doc.fillColor('#0f172a')
+           .font('Helvetica-Bold')
+           .fontSize(22)
+           .text('INFORME DE SU RESERVA', 0, 60, { align: 'center' });
+
+        doc.fontSize(10)
+           .font('Helvetica')
+           .text(`Fecha de la Reserva: ${data.fechaReserva} de 2026`, 200, 95, { align: 'right' });
+
+        doc.moveDown(4);
+
+        // --- Data Grid Section ---
+        const startY = 160;
+        const rowHeight = 25;
+        const labelX = 70;
+        const valueX = 250;
+
+        const drawRow = (label, value, y, isTotal = false) => {
+            if (isTotal) {
+                doc.rect(50, y - 5, 500, rowHeight).fill('#f1f5f9');
+                doc.fillColor('#0f172a').font('Helvetica-Bold');
+            } else {
+                doc.fillColor('#475569').font('Helvetica');
+            }
+            doc.text(label, labelX, y);
+            doc.fillColor('#0f172a').font('Helvetica-Bold').text(value, valueX, y);
         };
 
-        console.log('Generating PDF with data for:', data.nombreReserva);
+        let currentY = startY;
+        drawRow('Nombre de la Reserva:', data.nombreReserva, currentY); currentY += rowHeight;
+        drawRow('C.C. / ID:', data.ccReserva, currentY); currentY += rowHeight;
+        drawRow('Personas:', data.personas, currentY); currentY += rowHeight;
+        drawRow('CÓDIGO DE LA RESERVA:', data.codigoReserva, currentY); currentY += rowHeight;
+        drawRow('Dirección del inmueble:', data.direccionInmueble, currentY); currentY += rowHeight;
+        drawRow('Entrada:', data.entrada, currentY); currentY += rowHeight;
+        drawRow('Salida:', data.salida, currentY); currentY += rowHeight;
         
-        pdf.generatePdf(file, options)
-            .then(pdfBuffer => {
-                console.log('PDF generated successfully');
-                res.setHeader('Content-Type', 'application/pdf');
-                res.setHeader('Content-Disposition', 'attachment; filename="informe_reserva.pdf"');
-                res.send(pdfBuffer);
-            })
-            .catch(err => {
-                console.error('Puppeteer error:', err);
-                res.status(500).json({ error: 'Error interno de Puppeteer: ' + err.message });
-            });
+        doc.moveDown();
+        currentY += 10;
+
+        const format = (v) => `$ ${parseFloat(v || 0).toLocaleString('es-CO')}`;
+
+        drawRow('Valor noche Adicional:', format(data.valorNocheAdicional), currentY); currentY += rowHeight;
+        drawRow('Valor total del Arriendo:', format(data.valorTotalArriendo), currentY); currentY += rowHeight;
+        drawRow('BONO REEMBOLSABLE:', format(data.bonoReembolsable), currentY); currentY += rowHeight;
+        drawRow('Aseo:', format(data.aseo), currentY); currentY += rowHeight;
+
+        // Calculations
+        const total = parseFloat(data.valorTotalArriendo || 0) + parseFloat(data.aseo || 0);
+        const reserva30 = Math.round(total * 0.3);
+        const saldoAlEntrar = total - reserva30;
+
+        doc.moveDown();
+        currentY += 10;
+        drawRow('TOTAL:', format(total), currentY, true); currentY += rowHeight + 5;
+        drawRow('Valor para reservación (30%):', format(reserva30), currentY); currentY += rowHeight;
+        drawRow('Saldo al entrar al apartamento:', format(saldoAlEntrar), currentY); currentY += rowHeight;
+
+        doc.moveDown(2);
         
+        // --- Footer/Clauses Section ---
+        doc.font('Helvetica-Oblique').fontSize(9).fillColor('#64748b');
+        doc.text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped.', { align: 'center' });
+        doc.text('En el momento de la llegada se debe cancelar la totalidad del dinero.', { align: 'center' });
+        
+        doc.moveDown();
+        doc.font('Helvetica-Bold').fillColor('#0f172a');
+        doc.text('MÉTODO DE PAGO:', { underline: true });
+        doc.font('Helvetica').text(data.metodoPago || 'No especificado');
+
+        doc.moveDown(2);
+        doc.fontSize(8).fillColor('#94a3b8').text('Calle 32 32-64 local 11 CC. Riviera Plaza Bucaramanga', { align: 'center' });
+
+        // --- Developers Credits in PDF ---
+        doc.fontSize(7).fillColor('#cbd5e1').text('Desarrollado por Juan Duarte para Alquiler Renta House', 50, 780, { align: 'right' });
+
+        doc.end();
+        console.log('PDF generated successfully with PDFKit');
+
     } catch (error) {
-        console.error('Error generating PDF:', error);
-        res.status(500).json({ error: 'Error al generar el PDF: ' + error.message });
+        console.error('Error generating PDF with PDFKit:', error);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Error al generar el PDF: ' + error.message });
+        }
     }
 });
 
