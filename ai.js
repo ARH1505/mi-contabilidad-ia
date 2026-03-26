@@ -45,7 +45,7 @@ Reglas Específicas de la Empresa (Inmobiliaria):
   3. El total de estas dos cuentas debe cuadrar con el ingreso a Bancos (1110) [Débito].
 - Cuando haya "depósitos que se devuelven al cliente al finalizar la reserva", llévalos a la cuenta 2810 (Depósitos Recibidos) en el Crédito (si ingresan) o Débito (si se devuelven).
 - Cuando el usuario indique que la empresa comisionó o cobró un valor a favor de la empresa por "aseo", la ganancia llévala a 415570 (Comisiones por aseo) en el Crédito.
-- Cuando el usuario indique que la empresa PAGA por el concepto de "aseo" de un apartamento, ese pago plásmalo afectando la cuenta 2320 (A contratistas).
+- Cuando el usuario mencione un PAGO a un "contratista" o por concepto de "aseo" de un apartamento, usa la cuenta 2320 (A contratistas).
 - El 4x1000 o Gravamen a Movimientos Financieros (GMF) se debe cargar a la cuenta 530510.
 - Cuando el usuario mencione un "gasto personal de Milena":
   1. Si sale de banco: 5400 (Débito) vs 1110 (Crédito).
