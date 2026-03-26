@@ -484,14 +484,37 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 
                 doc.x = MARGIN_X;
                 const words = body.split(/(\s+)/);
-                words.forEach((word, index) => {
-                    const isLast = index === words.length - 1;
+                const chunks = [];
+                let currentChunk = "";
+                let currentIsUpper = null;
+
+                words.forEach((word) => {
                     const clean = word.trim();
+                    if (!clean) {
+                        currentChunk += word;
+                        return;
+                    }
                     const isUpper = clean.length >= 2 && /^[^a-z]+$/.test(clean) && /[A-ZÁÉÍÓÚÑ]/.test(clean);
                     
-                    doc.font(isUpper ? 'Helvetica-Bold' : 'Helvetica').fontSize(10);
-                    // Importante: No repetir width en cada palabra si es continued
-                    doc.text(word, { 
+                    if (currentIsUpper === null) {
+                        currentIsUpper = isUpper;
+                        currentChunk = word;
+                    } else if (currentIsUpper === isUpper) {
+                        currentChunk += word;
+                    } else {
+                        chunks.push({ text: currentChunk, isUpper: currentIsUpper });
+                        currentIsUpper = isUpper;
+                        currentChunk = word;
+                    }
+                });
+                if (currentChunk) {
+                    chunks.push({ text: currentChunk, isUpper: currentIsUpper });
+                }
+
+                chunks.forEach((chunk, index) => {
+                    const isLast = index === chunks.length - 1;
+                    doc.font(chunk.isUpper ? 'Helvetica-Bold' : 'Helvetica').fontSize(10);
+                    doc.text(chunk.text, { 
                         continued: !isLast, 
                         align: 'justify',
                         lineGap: 2
