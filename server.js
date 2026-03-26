@@ -297,7 +297,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
             }
         };
 
-        // Summary Logic (Existing but refined)
+        // --- Summary Logic (THE PERFECT ONE) ---
         if (type === 'summary') {
             addLogo();
             doc.moveDown(5);
@@ -315,8 +315,8 @@ app.post('/api/generate-booking-report', async (req, res) => {
             drawLine('Personas: ', data.personas);
             drawLine('CODIGO DE LA RESERVA: ', data.codigoReserva);
             drawLine('Dirección del inmueble: ', data.direccionInmueble);
-            drawLine('Entrada: ', `${data.entrada || ''} DE 2026`);
-            drawLine('Salida: ', `${data.salida || ''} DE 2026`);
+            drawLine('Entrada: ', `${data.entrada || ''}`);
+            drawLine('Salida: ', `${data.salida || ''}`);
             drawLine('Valor noche Adicional: ', format(data.valorNocheAdicional));
             drawLine('Valor total del Arriendo mensual: ', format(data.valorTotalArriendo));
             
@@ -338,28 +338,46 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.font('Helvetica').text(' son reembolsables al revisar el inventario y este al dia.');
 
             doc.moveDown(1.5);
-            doc.font('Helvetica').fontSize(11).text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped');
-            doc.moveDown(1);
+            doc.font('Helvetica').fontSize(11).text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped', { align: 'left' });
+            doc.moveDown(0.5);
             doc.text('En el momento de la llegada se debe cancelar la totalidad del dinero.');
-            doc.moveDown(1);
+            doc.moveDown(0.5);
             doc.text(`Todas las propiedades tienen una tarifa de limpieza de COP ${format(data.aseo)}. Esta tarifa No está incluida en el valor del alquiler y se paga una sola vez por la propiedad (no es por persona ni por noche).`);
 
-            doc.moveDown(2);
-            doc.fontSize(10.5).text('Acepta términos y condiciones https: rentahouse01@hotmail.com-rentahouse@gmail.com');
+            doc.moveDown(1.5);
+            // Missing content restored from turn 875
+            doc.fontSize(10.5).text('Contamos con seguro médico en caso de accidente o enfermedad que ocurra dentro del inmueble. Pregúntame cómo obtenerlo');
+            doc.moveDown(1);
+            doc.text('El ingreso de un número de personas mayor a las autorizadas, genera incumplimiento del contrato. Por tanto, se podrá dar por cancelado el mismo sin devolución alguna del dinero recibido. En caso de autorizarse, el valor por persona extra es de $50.000 DIARIO', { align: 'justify' });
+            doc.moveDown(1);
+            doc.text('El valor del depósito se reintegra cuando el propietario revise el inventario En contratos celebrados a meses, el depósito será devuelto 60 días después de la salida', { align: 'justify' });
+            doc.moveDown(1);
+            doc.font('Helvetica-Bold').text('Hora de entrada (check in): 3:00 PM');
+            doc.font('Helvetica').text('Hora de salida (check out): 12:00 PM');
+
+            doc.moveDown(1);
+            doc.font('Helvetica-Bold').text('CLÁUSULA X — POLÍTICAS DE CANCELACIÓN, REEMBOLSO Y CONDICIONES DE ENTREGA DEL INMUEBLE');
+            doc.font('Helvetica').text('En el momento en que se realiza la reserva, el apartamento se retira de la plataforma lo que impide que pueda ser tomado por otras personas. Por esta razón, el inmueble pierde la posibilidad de volver a ofrecerse y, en consecuencia, el 30% pagado por concepto de reserva no es reembolsable.', { align: 'justify' });
+
+            doc.moveDown(1.5);
+            doc.font('Helvetica').fontSize(10.5).text('Acepta términos y condiciones https: rentahouse01@hotmail.com-rentahouse@gmail.com');
             doc.moveDown(1);
             doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
             doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE');
             doc.moveDown(1);
+            doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
+            doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE.');
+            doc.moveDown(1);
             doc.font('Helvetica-Bold').text('4. Aceptación por Silencio del Arrendatario');
             doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.', { align: 'justify' });
 
-            doc.moveDown(2);
-            doc.font('Helvetica-Bold').fontSize(11).text('METODO DE PAGO');
+            doc.moveDown(1.5);
+            doc.font('Helvetica-Bold').fontSize(11).text('METODO DE PAGO', { align: 'left' });
             doc.font('Helvetica').fontSize(10.5).text(data.metodoPago || 'TRANSFERENCIA BANCARIA');
             doc.end();
 
         } else if (type === 'contract') {
-            // Full Contract Logic
+            // --- Full Contract Logic (ALIGNMENT FIX) ---
             doc.on('pageAdded', () => {
                 addLogo();
                 doc.y = 80;
@@ -368,14 +386,14 @@ app.post('/api/generate-booking-report', async (req, res) => {
             addLogo();
             doc.y = 80;
 
-            doc.font('Helvetica-Bold').fontSize(14).text('CONTRATO TEMPORAL DE ARRENDAMIENTO DE INMUEBLE AMOBLADO', { align: 'center' });
-            doc.moveDown(1.5);
+            doc.font('Helvetica-Bold').fontSize(14).text('CONTRATO TEMPORAL DE ARRENDAMIENTO DE INMUEBLE AMOBLADO', MARGIN_X, doc.y, { align: 'center', width: 500 });
+            doc.moveDown(2);
 
             const labelWidth = 180;
             const field = (label, value) => {
                 const currentY = doc.y;
-                doc.font('Helvetica-Bold').fontSize(10).text(label, MARGIN_X, currentY, { width: labelWidth });
-                doc.font('Helvetica').text(String(value || 'N/A'), MARGIN_X + labelWidth, currentY);
+                doc.font('Helvetica-Bold').fontSize(10).text(label, MARGIN_X, currentY, { width: labelWidth, align: 'left' });
+                doc.font('Helvetica').text(String(value || 'N/A'), MARGIN_X + labelWidth, currentY, { align: 'left' });
                 doc.moveDown(0.5);
             };
 
@@ -387,8 +405,8 @@ app.post('/api/generate-booking-report', async (req, res) => {
             field('EN CASO DE EMERGENCIA:', data.emergenciaNombre);
             field('TEL EMERGENCIA:', data.emergenciaTel);
             field('DIRECCION DE INMUEBLE:', data.direccionInmueble);
-            field('FECHA DE INGRESO:', `${data.entrada || ''} DE 2026`);
-            field('FECHA DE SALIDA:', `${data.salida || ''} DE 2026`);
+            field('FECHA DE INGRESO:', data.entrada);
+            field('FECHA DE SALIDA:', data.salida);
             field('CANON MENSUAL:', format(data.valorTotalArriendo));
             field('VALOR POR NOCHE ADICIONAL:', format(data.valorNocheAdicional));
             field('VALOR DE ASEO:', format(data.aseo));
@@ -399,15 +417,15 @@ app.post('/api/generate-booking-report', async (req, res) => {
             field('NUMERO DE PERSONAS:', data.personas);
 
             doc.moveDown(1);
-            doc.font('Helvetica-Bold').fontSize(11).text('CONDICIONES GENERALES');
+            doc.font('Helvetica-Bold').fontSize(11).text('CONDICIONES GENERALES', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(1);
 
             const legalText = (title, body) => {
                 if (title) {
-                    doc.font('Helvetica-Bold').fontSize(10).text(title);
+                    doc.font('Helvetica-Bold').fontSize(10).text(title, MARGIN_X, doc.y, { align: 'left' });
                     doc.moveDown(0.3);
                 }
-                doc.font('Helvetica').fontSize(10).text(body, { align: 'justify' });
+                doc.font('Helvetica').fontSize(10).text(body, MARGIN_X, doc.y, { align: 'justify', width: 500 });
                 doc.moveDown(1);
             };
 
@@ -435,19 +453,19 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
             legalText('QUINTA: SANCIÓN POR INCUMPLIMIENTO.-', `EL ARRENDATARIO acepta que las fechas solicitadas y acordadas no se pueden disminuir, ni trasladar, y NO se devolverá dinero PAGADO por la reserva realizada, bajo ningún argumento, y que, en caso de presentarse, se tomará dicho valor como indemnización AL ARRENDADOR.`);
 
-            legalText('PARÁGRAFO 2.-', `El incumplimiento por parte del ARRENDATARIO de cualquiera de las cláusulas de este contrato, lo constituirá en deudor del ARRENDADOR por una suma equivalente al valor de lo cancelado por concepto del alquiler pactado...`);
+            legalText('PARÁGRAFO 2.-', `El incumplimiento por parte del ARRENDATARIO de cualquiera de las cláusulas de este contrato, lo constituirá en deudor del ARRENDADOR por una suma equivalente al valor de lo cancelado por concepto del alquiler pactado.`);
 
             doc.moveDown(2);
-            doc.font('Helvetica-Bold').text('ARRENDADOR:');
+            doc.font('Helvetica-Bold').fontSize(10).text('ARRENDADOR:', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(2);
-            doc.text('_________________________________');
+            doc.text('_________________________________', MARGIN_X, doc.y);
             doc.text('YOJANNA YULIETH SERRANO GOMEZ');
             doc.text('CC 1.095.827.048');
 
             doc.moveDown(3);
-            doc.text('ARRENDATARIO:');
+            doc.text('ARRENDATARIO:', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(2);
-            doc.text('_________________________________');
+            doc.text('_________________________________', MARGIN_X, doc.y);
             doc.text(String(data.nombreReserva).toUpperCase());
             doc.text(`CC. ${data.ccReserva}`);
 
