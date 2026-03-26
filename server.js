@@ -377,7 +377,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.end();
 
         } else if (type === 'contract') {
-            // --- Full Contract Logic (ALIGNMENT FIX) ---
+            // --- Full Contract Logic (TABLE LAYOUT) ---
             doc.on('pageAdded', () => {
                 addLogo();
                 doc.y = 80;
@@ -386,57 +386,89 @@ app.post('/api/generate-booking-report', async (req, res) => {
             addLogo();
             doc.y = 80;
 
-            doc.font('Helvetica-Bold').fontSize(14).text('CONTRATO TEMPORAL DE ARRENDAMIENTO DE INMUEBLE AMOBLADO', MARGIN_X, doc.y, { align: 'center', width: 500 });
+            doc.font('Helvetica-Bold').fontSize(14).text('CONTRATO TEMPORAL DE ARRENDAMIENTO DE INMUEBLE AMOBLADO', { align: 'center' });
             doc.moveDown(2);
 
-            const labelWidth = 180;
-            const field = (label, value) => {
+            const MARGIN_X = 50;
+            doc.font('Helvetica-Bold').fontSize(10);
+
+            // Top Fields (Non-table)
+            doc.text('ARRENDADOR:  ', MARGIN_X, doc.y, { continued: true });
+            doc.font('Helvetica').text('ALQUILER RENTA HOUSE representado por YOJANNA YULIETH SERRANO GOMEZ identificada con cédula de ciudadanía # 1’095.827.048 de Bucaramanga, con matrícula mercantil 681907 ubicados en la CALLE. 32 # 32-64 LOCAL 11 CENTRO COMERCIAL RIVERA PLAZA barrio la Aurora, teléfonos 3165791058 – 3167583928- 6076901312', { align: 'justify' });
+            doc.moveDown(1);
+
+            doc.font('Helvetica-Bold').text('ARRENDATARIO: ', { continued: true });
+            doc.font('Helvetica').text(`${data.nombreReserva || ''} `, { continued: true });
+            doc.font('Helvetica-Bold').text('TIPO Y NUMERO DE ID: ', { continued: true });
+            doc.font('Helvetica').text(`CC. ${data.ccReserva || ''}`);
+            doc.moveDown(0.5);
+
+            doc.font('Helvetica-Bold').text('CORREO: ', { continued: true });
+            doc.font('Helvetica').text(`${data.emailReserva || ''}`, { continued: true });
+            const emailWidth = doc.widthOfString(`CORREO: ${data.emailReserva || ''}`);
+            doc.font('Helvetica-Bold').text('                                                                   TEL: ', { continued: true });
+            doc.font('Helvetica').text(`${data.telReserva || ''}`);
+            doc.moveDown(0.5);
+
+            doc.font('Helvetica-Bold').text('EN CASO DE EMERGENCIA: ', { continued: true });
+            doc.font('Helvetica').text(`${data.emergenciaNombre || ''}`, { continued: true });
+            doc.font('Helvetica-Bold').text('                                            TEL: ', { continued: true });
+            doc.font('Helvetica').text(`${data.emergenciaTel || ''}`);
+            doc.moveDown(1);
+
+            // Table Drawing helper
+            const startY = doc.y;
+            const tableWidth = 512;
+            const col1Width = 180;
+            const col2Width = tableWidth - col1Width;
+            const rowHeight = 25;
+
+            const drawRow = (label, value) => {
                 const currentY = doc.y;
-                doc.font('Helvetica-Bold').fontSize(10).text(label, MARGIN_X, currentY, { width: labelWidth, align: 'left' });
-                doc.font('Helvetica').text(String(value || 'N/A'), MARGIN_X + labelWidth, currentY, { align: 'left' });
-                doc.moveDown(0.5);
+                doc.rect(MARGIN_X, currentY, tableWidth, rowHeight).stroke();
+                doc.moveTo(MARGIN_X + col1Width, currentY).lineTo(MARGIN_X + col1Width, currentY + rowHeight).stroke();
+
+                doc.font('Helvetica-Bold').fontSize(9).text(label, MARGIN_X + 5, currentY + 7, { width: col1Width - 10 });
+                doc.font('Helvetica').fontSize(10).text(String(value || ''), MARGIN_X + col1Width + 5, currentY + 7, { width: col2Width - 10 });
+                
+                doc.y = currentY + rowHeight;
             };
 
-            field('ARRENDADOR:', 'ALQUILER RENTA HOUSE representado por YOJANNA YULIETH SERRANO GOMEZ identificada con cédula de ciudadanía # 1’095.827.048 de Bucaramanga, con matrícula mercantil 681907 ubicados en la CALLE. 32 # 32-64 LOCAL 11 CENTRO COMERCIAL RIVERA PLAZA barrio la Aurora, teléfonos 3165791058 – 3167583928- 6076901312');
-            field('ARRENDATARIO:', data.nombreReserva);
-            field('TIPO Y NUMERO DE ID:', data.ccReserva);
-            field('CORREO:', data.emailReserva);
-            field('TEL:', data.telReserva);
-            field('EN CASO DE EMERGENCIA:', data.emergenciaNombre);
-            field('TEL EMERGENCIA:', data.emergenciaTel);
-            field('DIRECCION DE INMUEBLE:', data.direccionInmueble);
-            field('FECHA DE INGRESO:', data.entrada);
-            field('FECHA DE SALIDA:', data.salida);
-            field('CANON MENSUAL:', format(data.valorTotalArriendo));
-            field('VALOR POR NOCHE ADICIONAL:', format(data.valorNocheAdicional));
-            field('VALOR DE ASEO:', format(data.aseo));
-            field('BONO DE GARANTIA:', format(data.bonoReembolsable));
+            drawRow('DIRECCION DE INMUEBLE', data.direccionInmueble);
+            drawRow('FECHA DE INGRESO', `${data.entrada || ''} DE 2026`);
+            drawRow('FECHA DE SALIDA', `${data.salida || ''} DE 2026`);
+            drawRow('CANON DE ARRENDAMIENTO MENSUAL. LIBRE DE RETENCION EN LA FUENTE.', format(data.valorTotalArriendo));
+            drawRow('IVA', '$ 0');
+            drawRow('RETENCION EN LA FUENTE', '$ 0');
+            drawRow('VALOR POR NOCHE ADICIONAL', format(data.valorNocheAdicional));
+            drawRow('VALOR DE ASEO: SOLO UNA VEZ', format(data.aseo));
+            drawRow('BONO DE GARANTIA', format(data.bonoReembolsable));
             
-            const total = parseFloat(data.valorTotalArriendo || 0) + parseFloat(data.aseo || 0) + parseFloat(data.bonoReembolsable || 0);
-            field('VALOR TOTAL CANCELADO:', format(total));
-            field('NUMERO DE PERSONAS:', data.personas);
+            const totalVal = parseFloat(data.valorTotalArriendo || 0) + parseFloat(data.aseo || 0) + parseFloat(data.bonoReembolsable || 0);
+            drawRow('VALOR TOTAL CANCELADO', format(totalVal));
+            drawRow('NUMERO DE PERSONAS', data.personas);
 
-            doc.moveDown(1);
-            doc.font('Helvetica-Bold').fontSize(11).text('CONDICIONES GENERALES', MARGIN_X, doc.y, { align: 'left' });
+            doc.moveDown(2);
+            doc.font('Helvetica-Bold').fontSize(11).text('CONDICIONES GENERALES');
             doc.moveDown(1);
 
             const legalText = (title, body) => {
                 if (title) {
-                    doc.font('Helvetica-Bold').fontSize(10).text(title, MARGIN_X, doc.y, { align: 'left' });
+                    doc.font('Helvetica-Bold').fontSize(10).text(title);
                     doc.moveDown(0.3);
                 }
-                doc.font('Helvetica').fontSize(10).text(body, MARGIN_X, doc.y, { align: 'justify', width: 500 });
+                doc.font('Helvetica').fontSize(10).text(body, { align: 'justify' });
                 doc.moveDown(1);
             };
 
             legalText('PRIMERA:', `El canon de arrendamiento deberá estar cancelado a su totalidad momento de la entrega del inmueble. Y mes a mes dos días antes del ${data.entrada || 'vencimiento'} que es la fecha de vencimiento del contrato, si por incumplimiento no se llegará a realizar el pago oportunamente, EN LA FECHA ACORDADA, EL ARRENDATARIO, autoriza amplia y de manera total AL ARRENDADOR, a acceder al inmueble arrendado, tomar como prenda de respaldo sus pertenencias, cambiar las guardas y hacer uso de sus facultades como encargado para reestablecer el poder de la propiedad, renunciando a interponer acciones jurídicas o policivas para conservar su estadía morosa en el inmueble, así como renunciar a cualquier tipo de cobro por este motivo.`);
 
             legalText('PARÁGRAFO 2º.-', `El ARRENDATARIO, en respaldo del presente contrato deja en poder del ARRENDADOR un bono de garantía por valor de ${format(data.bonoReembolsable)}, un pagare en blanco, con carta instrucciones, por concepto de ingreso y ocupación adicional del número de personas autorizadas, posibles daños ocasionados y perdidas del mobiliario, al inmueble y a las zonas comunes, el costo de los daños y pérdidas, la restauración o reposición total, consumo adicional por concepto de servicios públicos básicos domiciliarios; que excedan del valor del bono de garantía, la no entrega formal del inmueble. No existiendo reclamación alguna respecto del presente contrato.`);
-
+            
             legalText('PARÁGRAFO 3º.-', `Para contratos que su vigencia sea de un término de treinta (30) días o más, el bono de garantía, el pagaré y la carta de instrucciones serán entregados en un término de SESENTA (60) días siguientes a la fecha de entrega del inmueble previa verificación por parte del propietario del inmueble de que el ARRENDATARIO no ha pasado del consumo máximo de servicios públicos básicos domiciliarios establecido en el presente contrato. EN CONTRATOS POR DIAS EL BONO DE GARANTÍA SERA DEVUELTO EN CUANTO EL PROPIETARIO REVISE EL INMUEBLE, SE DEVOLVERA EL BONO DE GARANTÍA EN 3 DIAS EXCEPTO LOS DIAS DOMINICALES Y FESTIVOS.`);
-
+            
             legalText('PARAGRAFO PRIMERO.-', `En caso de ser cliente extranjero quien figure como titular del presente contrato, además de todo lo pactado, nos autoriza a reportar a las centrales, entidades policivas, organismos internacionales y nacionales, su comportamiento en la unidad, el apartamento y con terceros, además, nos autoriza para que: en caso de no cumplir con sus obligaciones se le impida su salida del país hasta lograr el Cumplimiento satisfactorio de las mismas y adicional se le cobrará una multa de gestión de cobranza por valor de $3.600.000 y desde luego el cobro de todos los costos que se generen.`);
-
+            
             legalText('SEGUNDO: RECIBO Y ESTADO.-', `El ARRENDATARIO verificará el buen estado del inmueble objeto de este contrato, según el inventario, sea físico o digital; que se realizará con la persona encargada de realizar la entrega del inmueble. Este documento hace parte integral del presente contrato. Además del inmueble identificado y descrito anteriormente tendrá el ARRENDATARIO derecho de uso y goce sobre las cosas.`);
             
             legalText('', `El ARRENDATARIO se compromete a utilizar los muebles, equipos y zona social del inmueble de manera adecuada conservándolas en el estado en que se encuentran y, por tanto, responderá por cualquier daño o pérdida de los elementos y bienes del inmueble, hasta por la culpa leve. Si en el transcurso de la ocupación el ARRENDATARIO o sus dependientes ocasionan pérdida, daño total o parcial de los bienes del inmueble, deberá informarlos inmediatamente.`);
@@ -456,16 +488,16 @@ app.post('/api/generate-booking-report', async (req, res) => {
             legalText('PARÁGRAFO 2.-', `El incumplimiento por parte del ARRENDATARIO de cualquiera de las cláusulas de este contrato, lo constituirá en deudor del ARRENDADOR por una suma equivalente al valor de lo cancelado por concepto del alquiler pactado.`);
 
             doc.moveDown(2);
-            doc.font('Helvetica-Bold').fontSize(10).text('ARRENDADOR:', MARGIN_X, doc.y, { align: 'left' });
+            doc.font('Helvetica-Bold').fontSize(10).text('ARRENDADOR:');
             doc.moveDown(2);
-            doc.text('_________________________________', MARGIN_X, doc.y);
+            doc.text('_________________________________');
             doc.text('YOJANNA YULIETH SERRANO GOMEZ');
             doc.text('CC 1.095.827.048');
 
             doc.moveDown(3);
-            doc.text('ARRENDATARIO:', MARGIN_X, doc.y, { align: 'left' });
+            doc.text('ARRENDATARIO:');
             doc.moveDown(2);
-            doc.text('_________________________________', MARGIN_X, doc.y);
+            doc.text('_________________________________');
             doc.text(String(data.nombreReserva).toUpperCase());
             doc.text(`CC. ${data.ccReserva}`);
 
