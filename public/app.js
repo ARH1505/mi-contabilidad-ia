@@ -9,6 +9,7 @@ const titles = {
     'ledger-view': { title: 'Libro Diario', sub: 'Historial de transacciones y movimientos exportables a Excel.' },
     'puc-view': { title: 'Plan Único de Cuentas (PUC)', sub: 'Listado oficial de cuentas contables de Colombia.' },
     'results-view': { title: 'Estado de Resultados', sub: 'Análisis de Ingresos, Gastos, Costos y Utilidad del Ejercicio.' },
+    'docs-view': { title: 'Generador de Documentos', sub: 'Crea informes de reserva y contratos en PDF automáticamente.' },
     'help-view': { title: 'Asesoría Contable', sub: 'Haz consultas tributarias y contables libres al agente experto.' }
 };
 
@@ -574,4 +575,59 @@ async function fetchIncomeStatement() {
     } catch (e) {
         container.innerHTML = `<div style="color:red;text-align:center;padding:40px;">Error generando reporte: ${e.message}</div>`;
     }
+}
+
+// --- Document Generator Logic ---
+const bookingForm = document.getElementById('booking-form');
+if (bookingForm) {
+    bookingForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const generateBtn = document.getElementById('generate-pdf-btn');
+        const originalBtnHtml = generateBtn.innerHTML;
+        
+        generateBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
+        generateBtn.disabled = true;
+
+        const formData = {
+            fechaReserva: document.getElementById('fechaReserva').value,
+            nombreReserva: document.getElementById('nombreReserva').value,
+            ccReserva: document.getElementById('ccReserva').value,
+            personas: document.getElementById('personas').value,
+            codigoReserva: document.getElementById('codigoReserva').value,
+            direccionInmueble: document.getElementById('direccionInmueble').value,
+            entrada: document.getElementById('entrada').value,
+            salida: document.getElementById('salida').value,
+            valorNocheAdicional: document.getElementById('valorNocheAdicional').value,
+            valorTotalArriendo: document.getElementById('valorTotalArriendo').value,
+            bonoReembolsable: document.getElementById('bonoReembolsable').value,
+            aseo: document.getElementById('aseo').value,
+            metodoPago: document.getElementById('metodoPago').value
+        };
+
+        try {
+            const response = await fetch('/api/generate-booking-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) throw new Error('Error en la generación del PDF');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Informe_Reserva_${formData.nombreReserva.replace(/ /g, '_')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showToast('PDF generado y descargado con éxito');
+        } catch (error) {
+            console.error(error);
+            showToast('Error al generar el PDF', true);
+        } finally {
+            generateBtn.innerHTML = originalBtnHtml;
+            generateBtn.disabled = false;
+        }
+    });
 }

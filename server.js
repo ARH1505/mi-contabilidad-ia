@@ -5,7 +5,10 @@ const cors = require('cors');
 const path = require('path');
 const xlsx = require('xlsx');
 const db = require('./database');
+const fs = require('fs');
 const { processAccountingMovement, askAccountingQuestion } = require('./ai');
+const { generateBookingReportTemplate } = require('./reportTemplate');
+const pdf = require('html-pdf-node');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -269,6 +272,42 @@ app.get('/api/export', (req, res) => {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.send(buffer);
     });
+});
+
+// Generate Booking Report PDF
+app.post('/api/generate-booking-report', async (req, res) => {
+    try {
+        const data = req.body;
+        
+        // Load logo and convert to base64
+        const logoPath = path.join(__dirname, 'public', 'report_logo.png');
+        let logoBase64 = '';
+        if (fs.existsSync(logoPath)) {
+            const logoBuffer = fs.readFileSync(logoPath);
+            logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+        }
+        
+        data.logoBase64 = logoBase64;
+        
+        const html = generateBookingReportTemplate(data);
+        
+        const file = { content: html };
+        const options = { 
+            format: 'A4',
+            margin: { top: '0', right: '0', bottom: '0', left: '0' },
+            printBackground: true
+        };
+
+        pdf.generatePdf(file, options).then(pdfBuffer => {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename="informe_reserva.pdf"');
+            res.send(pdfBuffer);
+        });
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).json({ error: 'Error al generar el PDF: ' + error.message });
+    }
 });
 
 app.listen(PORT, () => {

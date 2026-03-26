@@ -35,6 +35,10 @@
                     <i class="fa-solid fa-chart-line"></i>
                     <span>Est. de Resultados</span>
                 </li>
+                <li data-view="docs-view">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>Generar Documentos</span>
+                </li>
                 <li data-view="help-view">
                     <i class="fa-solid fa-circle-question"></i>
                     <span>Consultas Contables</span>
@@ -140,6 +144,78 @@
                             <div class="typing-indicator" style="justify-content:center"><span></span><span></span><span></span></div>
                             <p style="margin-top:20px; color:var(--text-secondary);">Calculando Estado de Resultados...</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- View: Generador de Documentos -->
+                <div id="docs-view" class="view">
+                    <div class="view-header">
+                        <h2>Generador de Informe de Reserva</h2>
+                        <p>Completa los campos para generar el PDF con el formato oficial.</p>
+                    </div>
+                    
+                    <div class="glass-form-container">
+                        <form id="booking-form" class="docs-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Fecha de la Reserva</label>
+                                    <input type="text" id="fechaReserva" placeholder="Ej: 26 de Marzo" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nombre del Huésped</label>
+                                    <input type="text" id="nombreReserva" placeholder="Nombre completo" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>C.C. / ID</label>
+                                    <input type="text" id="ccReserva" placeholder="Documento de identidad" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Número de Personas</label>
+                                    <input type="number" id="personas" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Código de Reserva</label>
+                                    <input type="text" id="codigoReserva" placeholder="Ej: RH-2024-001" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Dirección del Inmueble</label>
+                                    <input type="text" id="direccionInmueble" placeholder="Dirección completa" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha de Entrada</label>
+                                    <input type="text" id="entrada" placeholder="Ej: 01 de Abril de 2026" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha de Salida</label>
+                                    <input type="text" id="salida" placeholder="Ej: 05 de Abril de 2026" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Valor Noche Adicional ($)</label>
+                                    <input type="number" id="valorNocheAdicional" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Valor Total Arriendo Mensual ($)</label>
+                                    <input type="number" id="valorTotalArriendo" value="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Bono Reembolsable ($)</label>
+                                    <input type="number" id="bonoReembolsable" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Aseo ($)</label>
+                                    <input type="number" id="aseo" value="0">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Método de Pago</label>
+                                    <textarea id="metodoPago" rows="2" placeholder="Ej: Transferencia Bancaria">BORREGO PRADA CAMILO JOSE BANCOLOMBIA AHORROS</textarea>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary" id="generate-pdf-btn">
+                                    <i class="fa-solid fa-file-pdf"></i> Generar y Descargar PDF
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
