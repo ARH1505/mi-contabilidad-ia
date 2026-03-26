@@ -273,7 +273,7 @@ app.get('/api/export', (req, res) => {
     });
 });
 
-// Generate Booking Report PDF using PDFKit (Continuous Flow & Precise Highlights)
+// Generate Booking Report PDF using PDFKit (Professional Left-Aligned Layout)
 app.post('/api/generate-booking-report', async (req, res) => {
     try {
         const data = req.body || {};
@@ -289,21 +289,22 @@ app.post('/api/generate-booking-report', async (req, res) => {
         const footerColor = '#6d28d9';
         const footerText = 'Calle 32 32-64 local 11 CC. Riviera Plaza Bucaramanga | 3167583928 - 3165791058';
 
-        // Helper to draw highlighted line with precise alignment
+        const MARGIN_X = 70;
+
+        // Helper to draw highlighted line with fixed margin
         const drawLine = (label, value, isBoldLabel = false, fontSize = 10) => {
             doc.font(isBoldLabel ? 'Helvetica-Bold' : 'Helvetica').fontSize(fontSize).fillColor('#000000');
             const labelWidth = doc.widthOfString(label);
-            const startX = doc.x;
             const startY = doc.y;
 
-            // Draw label
-            doc.text(label, startX, startY);
+            // Draw label at fixed left margin
+            doc.text(label, MARGIN_X, startY);
 
             // Draw highlight for value if it exists
             const valStr = String(value || '');
             if (valStr) {
                 const valWidth = doc.widthOfString(valStr);
-                const highlightX = startX + labelWidth;
+                const highlightX = MARGIN_X + labelWidth;
                 
                 doc.save()
                    .rect(highlightX, startY - 1, valWidth + 4, fontSize + 2)
@@ -311,20 +312,22 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 
                 doc.fillColor('#000000').font('Helvetica-Bold').text(valStr, highlightX + 2, startY);
             }
-            doc.moveDown(0.5);
+            // Move down for next line
+            doc.moveDown(0.6);
         };
 
         // --- HEADER ---
         const logoPath = path.join(__dirname, 'public', 'report_logo.png');
         if (fs.existsSync(logoPath)) {
-            doc.image(logoPath, (doc.page.width - 120) / 2, 40, { width: 120 });
+            // Logo on the left
+            doc.image(logoPath, MARGIN_X, 40, { width: 100 });
         }
 
         doc.moveDown(6);
-        doc.fillColor('#000000').font('Helvetica-Bold').fontSize(12).text('INFORME DE SU RESERVA', { align: 'center' });
+        doc.fillColor('#000000').font('Helvetica-Bold').fontSize(12).text('INFORME DE SU RESERVA', MARGIN_X, doc.y, { align: 'center' });
         doc.moveDown(2);
 
-        // --- PAGE 1: BASIC INFO ---
+        // --- SECTION 1: BASIC INFO ---
         drawLine('Fecha de la Reserva: ', data.fechaReserva);
         drawLine('Nombre de la Reserva: ', data.nombreReserva);
         drawLine('C.C : ', data.ccReserva);
@@ -338,7 +341,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
         doc.moveDown(2);
 
-        // --- FINANCIALS ---
+        // --- SECTION 2: FINANCIALS ---
         drawLine('BONO REMBOLSABLE: ', format(data.bonoReembolsable), true);
         doc.font('Helvetica').fontSize(10).text('por pérdidas o daños.', { indent: 20 });
         doc.moveDown(1);
@@ -374,7 +377,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
         doc.moveDown(2);
         
-        // --- LEGAL TEXTS (CONTINUOUS) ---
+        // --- SECTION 3: LEGAL ---
         doc.fontSize(10).font('Helvetica').text('Contamos con seguro médico en caso de accidente o enfermedad que ocurra dentro del inmueble. Pregúntame cómo obtenerlo.', { align: 'justify' });
         doc.moveDown();
         doc.font('Helvetica-Bold').text('El ingreso de un número de personas mayor a las autorizadas, genera incumplimiento del contrato. Por tanto, se podrá dar por cancelado el mismo sin devolución alguna del dinero recibido. En caso de autorizarse, el valor por persona extra es de $50.000 DIARIO.', { align: 'justify' });
