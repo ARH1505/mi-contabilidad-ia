@@ -580,15 +580,17 @@ async function fetchIncomeStatement() {
 // --- Document Generator Logic ---
 const bookingForm = document.getElementById('booking-form');
 if (bookingForm) {
-    bookingForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const generateBtn = document.getElementById('generate-pdf-btn');
+    const handlePdfGeneration = async (type) => {
+        const btnId = type === 'summary' ? 'generate-summary-btn' : 'generate-contract-btn';
+        const generateBtn = document.getElementById(btnId);
         const originalBtnHtml = generateBtn.innerHTML;
         
         generateBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
-        generateBtn.disabled = true;
+        document.getElementById('generate-summary-btn').disabled = true;
+        document.getElementById('generate-contract-btn').disabled = true;
 
         const formData = {
+            type: type, // 'summary' or 'contract'
             fechaReserva: document.getElementById('fechaReserva').value,
             nombreReserva: document.getElementById('nombreReserva').value,
             ccReserva: document.getElementById('ccReserva').value,
@@ -601,11 +603,16 @@ if (bookingForm) {
             valorTotalArriendo: document.getElementById('valorTotalArriendo').value,
             bonoReembolsable: document.getElementById('bonoReembolsable').value,
             aseo: document.getElementById('aseo').value,
-            metodoPago: document.getElementById('metodoPago').value
+            metodoPago: document.getElementById('metodoPago').value,
+            // New fields
+            emailReserva: document.getElementById('emailReserva').value,
+            telReserva: document.getElementById('telReserva').value,
+            emergenciaNombre: document.getElementById('emergenciaNombre').value,
+            emergenciaTel: document.getElementById('emergenciaTel').value
         };
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // Increased to 60s for long contracts
 
         try {
             const response = await fetch('/api/generate-booking-report', {
@@ -622,7 +629,8 @@ if (bookingForm) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Informe_Reserva_${formData.nombreReserva.replace(/ /g, '_')}.pdf`;
+            const fileName = type === 'summary' ? 'Informe_Reserva' : 'Contrato_Alquiler';
+            a.download = `${fileName}_${formData.nombreReserva.replace(/ /g, '_')}.pdf`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -637,7 +645,14 @@ if (bookingForm) {
             }
         } finally {
             generateBtn.innerHTML = originalBtnHtml;
-            generateBtn.disabled = false;
+            document.getElementById('generate-summary-btn').disabled = false;
+            document.getElementById('generate-contract-btn').disabled = false;
         }
-    });
+    };
+
+    document.getElementById('generate-summary-btn').addEventListener('click', () => handlePdfGeneration('summary'));
+    document.getElementById('generate-contract-btn').addEventListener('click', () => handlePdfGeneration('contract'));
+    
+    // Prevent default form submit
+    bookingForm.addEventListener('submit', (e) => e.preventDefault());
 }

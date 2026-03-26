@@ -205,14 +205,33 @@
                                     <label>Aseo ($)</label>
                                     <input type="number" id="aseo" value="0">
                                 </div>
+                                <div class="form-group">
+                                    <label>Correo del Huésped</label>
+                                    <input type="email" id="emailReserva" placeholder="ejemplo@correo.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>Teléfono / WhatsApp</label>
+                                    <input type="text" id="telReserva" placeholder="300 000 0000">
+                                </div>
+                                <div class="form-group">
+                                    <label>Contacto Emergencia</label>
+                                    <input type="text" id="emergenciaNombre" placeholder="Nombre completo">
+                                </div>
+                                <div class="form-group">
+                                    <label>Tel. Emergencia</label>
+                                    <input type="text" id="emergenciaTel" placeholder="300 000 0000">
+                                </div>
                                 <div class="form-group full-width">
                                     <label>Método de Pago</label>
                                     <textarea id="metodoPago" rows="2" placeholder="Ej: Transferencia Bancaria">BORREGO PRADA CAMILO JOSE BANCOLOMBIA AHORROS</textarea>
                                 </div>
                             </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn-primary" id="generate-pdf-btn">
-                                    <i class="fa-solid fa-file-pdf"></i> Generar y Descargar PDF
+                            <div class="form-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+                                <button type="button" class="btn-primary" id="generate-summary-btn" style="flex:1; min-width:200px;">
+                                    <i class="fa-solid fa-file-invoice"></i> Generar Reserva (Resumen)
+                                </button>
+                                <button type="button" class="btn-primary" id="generate-contract-btn" style="flex:1; min-width:200px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                    <i class="fa-solid fa-file-contract"></i> Generar Contrato (Legal)
                                 </button>
                             </div>
                         </form>
