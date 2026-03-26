@@ -559,19 +559,25 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
             legalText('UNDÉCIMA CUARTA:', `El ARRENDATARIO autoriza de manera irrevocable al ARRENDADOR o a quien represente sus derechos para que los datos de identificación suministrados en el presente contrato sean entregados a las autoridades municipales, departamentales, de policía y judiciales que para efectos de control, supervisión y seguridad realicen al establecimiento de comercio.`);
 
+            // --- Sección de Firmas (Mantener juntas) ---
+            const signatureHeight = 180;
+            if (doc.y + signatureHeight > doc.page.height - 70) {
+                doc.addPage();
+            }
+
             doc.moveDown(2);
             doc.font('Helvetica-Bold').fontSize(10).text('ARRENDADOR:', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(2);
             doc.text('_________________________________', MARGIN_X, doc.y);
-            doc.text('YOJANNA YULIETH SERRANO GOMEZ', MARGIN_X, doc.y);
+            doc.font('Helvetica-Bold').text('YOJANNA YULIETH SERRANO GOMEZ', MARGIN_X, doc.y);
             doc.text('CC 1.095.827.048', MARGIN_X, doc.y);
 
             doc.moveDown(3);
-            doc.text('ARRENDATARIO:', MARGIN_X, doc.y, { align: 'left' });
+            doc.font('Helvetica-Bold').text('ARRENDATARIO:', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(2);
             doc.text('_________________________________', MARGIN_X, doc.y);
-            doc.text(String(data.nombreReserva).toUpperCase(), MARGIN_X, doc.y);
-            doc.text(`CC. ${data.ccReserva}`, MARGIN_X, doc.y);
+            doc.font('Helvetica-Bold').text(String(data.nombreReserva || '').toUpperCase(), MARGIN_X, doc.y);
+            doc.font('Helvetica-Bold').text(`CC. ${data.ccReserva || ''}`, MARGIN_X, doc.y);
 
             doc.end();
         }
