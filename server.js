@@ -362,9 +362,14 @@ app.post('/api/generate-booking-report', async (req, res) => {
         
         doc.moveDown(2.5);
 
-        doc.font('Helvetica').fontSize(10.5).text('Acepta términos y condiciones https: rentahouse01@hotmail.com - rentahouse@gmail.com');
+        doc.font('Helvetica').fontSize(10.5).text('Acepta términos y condiciones https: rentahouse01@hotmail.com-rentahouse@gmail.com');
         doc.moveDown(1.5);
 
+        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
+        doc.moveDown(1);
+        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE');
+
+        doc.moveDown(1.5);
         doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
         doc.moveDown(1);
         doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE.');
