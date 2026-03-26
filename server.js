@@ -459,7 +459,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 
                 if (title) {
                     doc.font('Helvetica-Bold').fontSize(10).text(title, MARGIN_X, doc.y, { align: 'left' });
-                    doc.moveDown(0.5); // Más espacio después del título
+                    doc.moveDown(1.0); // Aún más espacio después del título como pidió el usuario
                 }
                 
                 doc.x = MARGIN_X;
