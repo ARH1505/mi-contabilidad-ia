@@ -4,14 +4,11 @@ FROM node:20-slim
 # Directorio de trabajo
 WORKDIR /app
 
-# Copiamos archivos de dependencias
-COPY package*.json ./
-
-# Instalamos dependencias
-RUN npm install
-
 # Instalamos dependencias del sistema para Puppeteer/Chromium
 RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
     libnss3 \
     libdbus-1-3 \
     libatk1.0-0 \
@@ -27,7 +24,16 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     libpangocairo-1.0-0 \
     libxshmfence1 \
+    fonts-liberation \
+    libappindicator3-1 \
+    libwayland-client0 \
     && rm -rf /var/lib/apt/lists/*
+
+# Copiamos archivos de dependencias
+COPY package*.json ./
+
+# Instalamos dependencias
+RUN npm install
 
 # Copiamos el resto del código
 COPY . .
