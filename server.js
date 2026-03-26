@@ -273,38 +273,36 @@ app.get('/api/export', (req, res) => {
     });
 });
 
-// Generate Booking Report PDF using PDFKit (Word-Style with Highlights)
+// Generate Booking Report PDF using PDFKit (Stable Word-Style)
 app.post('/api/generate-booking-report', async (req, res) => {
     try {
-        const data = req.body;
+        const data = req.body || {};
+        const nombreReserva = (data.nombreReserva || 'Reserva').replace(/[/\\?%*:|"<>]/g, '-');
+        
         const doc = new PDFDocument({ margin: 70, size: 'A4', bufferPages: true });
 
+        // Error handling for the stream
+        doc.on('error', err => {
+            console.error('PDFKit Error:', err);
+            if (!res.headersSent) res.status(500).send('Error generating PDF');
+        });
+
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="Reserva_${data.nombreReserva.replace(/ /g, '_')}.pdf"`);
+        res.setHeader('Content-Disposition', `attachment; filename="Reserva_${nombreReserva}.pdf"`);
         doc.pipe(res);
 
         const format = (v) => `$ ${parseFloat(v || 0).toLocaleString('es-CO')}`;
-        const footerColor = '#6d28d9'; // Purple/Blue from screenshot
-        const footerText = 'Calle 32 32-64 local 11 CC. Riviera Plaza Bucaramanga 3167583928-3165791058-6076744033';
+        const footerColor = '#6d28d9';
+        const footerText = 'Calle 32 32-64 local 11 CC. Riviera Plaza Bucaramanga | 3167583928 - 3165791058';
 
-        // Helper to draw highlighted text
-        const highlight = (text, x, y, isBold = true) => {
-            doc.font(isBold ? 'Helvetica-Bold' : 'Helvetica').fontSize(10);
-            const width = doc.widthOfString(text);
-            const height = 12; // Adjusted for 10pt font
-            doc.save()
-               .rect(x, y - 1, width + 4, height)
-               .fill('#ffff00'); // Yellow
-            doc.fillColor('#000000').text(text, x + 2, y);
-            doc.restore();
-            return width + 10;
-        };
-
+        // Helper for Footer
         const addFooter = () => {
-            doc.fontSize(8).fillColor(footerColor).text(footerText, 50, 780, { align: 'center' });
+            const pageCount = doc.bufferedPageRange().count;
+            for (let i = 0; i < pageCount; i++) {
+                doc.switchToPage(i);
+                doc.fontSize(8).fillColor(footerColor).text(footerText, 50, 780, { align: 'center' });
+            }
         };
-
-        doc.on('pageAdded', addFooter);
 
         // --- PAGE 1: BASIC INFO ---
         const logoPath = path.join(__dirname, 'public', 'report_logo.png');
@@ -314,62 +312,47 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
         doc.moveDown(6);
         doc.fillColor('#000000').font('Helvetica-Bold').fontSize(12).text('INFORME DE SU RESERVA', { align: 'center' });
-        doc.moveDown(1.5);
+        doc.moveDown(2);
 
-        let currentY = doc.y;
-        doc.font('Helvetica').fontSize(10).text('Fecha de la Reserva: ', 70, currentY, { continued: true });
-        highlight(`${data.fechaReserva} de 2026`, doc.x, currentY);
+        const drawHighlightedLine = (label, value, isBoldLabel = false) => {
+            doc.font(isBoldLabel ? 'Helvetica-Bold' : 'Helvetica').fontSize(10).fillColor('#000000');
+            doc.text(label, { continued: true });
+            
+            const valStr = String(value || '');
+            const x = doc.x;
+            const y = doc.y;
+            const w = doc.widthOfString(valStr);
+            
+            doc.save()
+               .rect(x, y - 1, w + 4, 12)
+               .fill('#ffff00');
+            
+            doc.fillColor('#000000').font('Helvetica-Bold').text(valStr, x + 2, y);
+            doc.moveDown(0.8);
+        };
 
-        currentY += 25;
-        doc.text('Nombre de la Reserva: ', 70, currentY, { continued: true });
-        let nextX = doc.x + highlight(data.nombreReserva, doc.x, currentY);
-        doc.text(' C.C : ', nextX, currentY, { continued: true });
-        highlight(data.ccReserva, doc.x, currentY);
-
-        currentY += 25;
-        doc.text('Personas: ', 70, currentY, { continued: true });
-        highlight(data.personas, doc.x, currentY);
-
-        currentY += 25;
-        doc.font('Helvetica-Bold').text('CODIGO DE LA RESERVA: ', 70, currentY, { continued: true });
-        highlight(data.codigoReserva, doc.x, currentY);
-
-        currentY += 25;
-        doc.font('Helvetica').text('Dirección del inmueble: ', 70, currentY, { continued: true });
-        highlight(data.direccionInmueble, doc.x, currentY);
-
-        currentY += 25;
-        doc.text('Entrada: ', 70, currentY, { continued: true });
-        highlight(`${data.entrada} DE 2026`, doc.x, currentY);
-
-        currentY += 25;
-        doc.text('Salida: ', 70, currentY, { continued: true });
-        highlight(`${data.salida} DE 2026`, doc.x, currentY);
-
-        currentY += 25;
-        doc.text('Valor noche Adicional: ', 70, currentY, { continued: true });
-        highlight(format(data.valorNocheAdicional), doc.x, currentY);
-
-        currentY += 25;
-        doc.text('Valor total del Arriendo mensual: ', 70, currentY, { continued: true });
-        highlight(format(data.valorTotalArriendo), doc.x, currentY);
-
-        addFooter();
+        drawHighlightedLine('Fecha de la Reserva: ', `${data.fechaReserva || ''} de 2026`);
+        drawHighlightedLine('Nombre de la Reserva: ', data.nombreReserva);
+        drawHighlightedLine('C.C : ', data.ccReserva);
+        drawHighlightedLine('Personas: ', data.personas);
+        drawHighlightedLine('CODIGO DE LA RESERVA: ', data.codigoReserva, true);
+        drawHighlightedLine('Dirección del inmueble: ', data.direccionInmueble);
+        drawHighlightedLine('Entrada: ', `${data.entrada || ''} DE 2026`);
+        drawHighlightedLine('Salida: ', `${data.salida || ''} DE 2026`);
+        drawHighlightedLine('Valor noche Adicional: ', format(data.valorNocheAdicional));
+        drawHighlightedLine('Valor total del Arriendo mensual: ', format(data.valorTotalArriendo));
 
         // --- PAGE 2: FINANCIALS ---
         doc.addPage();
         if (fs.existsSync(logoPath)) doc.image(logoPath, (doc.page.width - 80) / 2, 40, { width: 80 });
         doc.moveDown(6);
 
-        currentY = doc.y;
-        doc.font('Helvetica-Bold').text('BONO REMBOLSABLE: ', 70, currentY, { continued: true });
-        highlight(format(data.bonoReembolsable), doc.x, currentY);
-        doc.text(' por pérdidas o daños. ', doc.x, currentY);
+        drawHighlightedLine('BONO REMBOLSABLE: ', format(data.bonoReembolsable), true);
+        doc.text('por pérdidas o daños.', { indent: 20 });
+        doc.moveDown(0.5);
 
-        currentY += 25;
-        doc.text('Aseo: ', 70, currentY, { continued: true });
-        highlight(format(data.aseo), doc.x, currentY);
-
+        drawHighlightedLine('Aseo: ', format(data.aseo));
+        
         const arriendo = parseFloat(data.valorTotalArriendo || 0);
         const aseo = parseFloat(data.aseo || 0);
         const bono = parseFloat(data.bonoReembolsable || 0);
@@ -377,89 +360,65 @@ app.post('/api/generate-booking-report', async (req, res) => {
         const reserva30 = Math.round(total * 0.3);
         const saldo = total - reserva30;
 
-        currentY += 25;
-        doc.text('Total: ', 70, currentY, { continued: true });
-        highlight(format(total), doc.x, currentY);
-
-        currentY += 40;
-        doc.text('Valor para reservación (30% del total) ', 70, currentY, { continued: true });
-        highlight(format(reserva30), doc.x, currentY);
-
-        currentY += 25;
-        doc.text('Saldo al entrar al apartamento: ', 70, currentY, { continued: true });
-        highlight(format(saldo), doc.x, currentY);
-
-        currentY += 25;
-        doc.font('Helvetica').text('De los cuales ', 70, currentY, { continued: true });
-        highlight(format(bono), doc.x, currentY);
-        doc.text(' son reembolsables al revisar el inventario y este al dia. ', doc.x, currentY);
+        drawHighlightedLine('Total: ', format(total));
+        doc.moveDown(1);
+        drawHighlightedLine('Valor para reservación (30% del total): ', format(reserva30));
+        drawHighlightedLine('Saldo al entrar al apartamento: ', format(saldo));
+        drawHighlightedLine('De los cuales reembolsables: ', format(bono));
 
         doc.moveDown(2);
-        doc.font('Helvetica').fontSize(9).text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped', { align: 'left', indent: 20 });
-        doc.text('En el momento de la llegada se debe cancelar la totalidad del dinero.', { align: 'left', indent: 20 });
-        doc.text(`Todas las propiedades tienen una tarifa de limpieza de COP `, { continued: true, indent: 20 });
-        highlight(format(aseo), doc.x, doc.y - 2);
-        doc.text('. Esta tarifa No está incluida en el valor del alquiler y se paga una sola vez por la propiedad (no es por persona ni por noche).', doc.x, doc.y - 2);
+        doc.font('Helvetica').fontSize(9).text('La comisión bancaria debe ser paga por el huésped.', { align: 'left' });
+        doc.text('En el momento de la llegada se debe cancelar la totalidad del dinero.', { align: 'left' });
+        doc.text(`Tarifa de limpieza (una sola vez): ${format(aseo)}`, { align: 'left' });
 
-        // --- PAGE 3: LEGAL 1 ---
+        // --- PAGE 3: LEGAL ---
         doc.addPage();
         if (fs.existsSync(logoPath)) doc.image(logoPath, (doc.page.width - 80) / 2, 40, { width: 80 });
         doc.moveDown(6);
         
-        doc.fontSize(10).font('Helvetica').text('Contamos con seguro médico en caso de accidente o enfermedad que ocurra dentro del inmueble. Pregúntame cómo obtenerlo', { align: 'justify' });
+        doc.fontSize(10).font('Helvetica').text('El ingreso de un número de personas mayor a las autorizadas genera incumplimiento del contrato. Valor por persona extra: $50.000 DIARIO.', { align: 'justify' });
         doc.moveDown();
-        doc.text('El ingreso de un número de personas mayor a las autorizadas, genera incumplimiento del contrato. Por tanto, se podrá dar por cancelado el mismo sin devolución alguna del dinero recibido. En caso de autorizarse, el valor por persona extra es de $50.000 DIARIO', { align: 'justify' });
+        doc.text('El valor del depósito se reintegra tras revisar el inventario.', { align: 'justify' });
         doc.moveDown();
-        doc.text('El valor del depósito se reintegra cuando el propietario revise el inventario En contratos celebrados a meses, el depósito será devuelto 60 días después de la salida', { align: 'justify' });
-        doc.moveDown();
-        doc.text('Hora de entrada (check in): 3:00 PM', { continued: true });
-        doc.text(' | Hora de salida (check out): 12:00 PM');
+        doc.text('Check-in: 3:00 PM | Check-out: 12:00 PM', { font: 'Helvetica-Bold' });
 
         doc.moveDown(2);
-        doc.font('Helvetica-Bold').text('CLÁUSULA X — POLÍTICAS DE CANCELACIÓN, REEMBOLSO Y CONDICIONES DE ENTREGA DEL INMUEBLE');
-        doc.font('Helvetica').text('En el momento en que se realiza la reserva, el apartamento se retira de la plataforma lo que impide que pueda ser tomado por otras personas. Por esta razón, el inmueble pierde la posibilidad de volver a ofrecerse y, en consecuencia, el 30% pagado por concepto de reserva no es reembolsable.', { align: 'justify' });
+        doc.font('Helvetica-Bold').text('CLÁUSULA X — POLÍTICAS DE CANCELACIÓN');
+        doc.font('Helvetica').text('El 30% pagado por concepto de reserva no es reembolsable ya que el apartamento se retira de la plataforma impidiendo otras reservas.', { align: 'justify' });
         
         doc.moveDown();
-        doc.font('Helvetica-Bold').text('CONDICIONES DE PAGO PREVIO AL INGRESO');
-        doc.font('Helvetica').text('El arrendatario deberá cancelar el cien por ciento (100%) del valor total del alojamiento a más tardar el día de la entrega del apto. En caso contrario, no se entregarán las llaves del inmueble.', { align: 'justify' });
+        doc.font('Helvetica-Bold').text('CONDICIONES DE PAGO');
+        doc.font('Helvetica').text('El arrendatario deberá cancelar el 100% del valor a más tardar el día de la entrega.', { align: 'justify' });
 
-        // --- PAGE 4: LEGAL 2 ---
+        // --- PAGE 4: ACCEPTANCE ---
         doc.addPage();
-        if (fs.existsSync(logoPath)) doc.image(logoPath, (doc.page.width - 80) / 2, 40, { width: 80 });
         doc.moveDown(6);
-
-        doc.font('Helvetica-Bold').text('DOCUMENTACIÓN OBLIGATORIA PARA LA ENTREGA DEL INMUEBLE');
-        doc.font('Helvetica').text('El arrendatario deberá suscribir y entregar, en original y copia, los siguientes documentos: Acepta términos y condiciones https: rentahouse01@hotmail.com-rentahouse@gmail.com', { align: 'justify' });
-        
-        doc.moveDown(2);
-        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
-        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE', { align: 'justify' });
-
-        doc.moveDown(2);
-        doc.font('Helvetica-Bold').text('4. Aceptación por Silencio del Arrendatario');
-        doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.', { align: 'justify' });
+        doc.font('Helvetica-Bold').text('DOCUMENTACIÓN Y ACEPTACIÓN');
+        doc.font('Helvetica').text('El arrendatario declara haber leído y aceptado estas condiciones al realizar el pago de la reserva.', { align: 'justify' });
+        doc.moveDown();
+        doc.text('Si en 24 horas no existe objeción tras el envío de este documento, se entenderá aceptado en su totalidad.', { align: 'justify' });
 
         // --- PAGE 5: PAYMENT ---
         doc.addPage();
-        if (fs.existsSync(logoPath)) doc.image(logoPath, (doc.page.width - 80) / 2, 40, { width: 80 });
         doc.moveDown(6);
-
         doc.font('Helvetica-Bold').fontSize(11).text('METODO DE PAGO');
-        doc.moveDown(0.5);
-        highlight(data.metodoPago || 'TRANSFERENCIA BANCARIA', 70, doc.y);
-        doc.moveDown(2);
-        doc.font('Helvetica').text('Calle 32 # 32 – 64 Local 11 Centro Comercial Riviera Plaza Bucaramanga.');
-        doc.font('Helvetica-Bold').text('TRANSFERENCIA O CONSIGNACIÓN');
-        doc.text('BANCOLOMBIA CUENTA DE AHORROS # 02046147939');
+        doc.moveDown(1);
+        drawHighlightedLine('Referencia: ', data.metodoPago || data.nombreReserva);
+        doc.moveDown(1);
+        doc.font('Helvetica').text('BANCOLOMBIA CUENTA DE AHORROS # 02046147939');
+        doc.text('A nombre de: ALQUILER RENTA HOUSE');
 
-        doc.fontSize(7).fillColor('#cbd5e1').text('Desarrollado por Juan Duarte para Alquiler Renta House', 50, 780, { align: 'right' });
+        // Add footers to all pages at the end
+        addFooter();
 
         doc.end();
-        console.log('Word-Style PDF with highlights generated');
+        console.log('Stable PDF generated successfully');
 
     } catch (error) {
-        console.error('Error in PDF generation:', error);
-        if (!res.headersSent) res.status(500).json({ error: 'Error: ' + error.message });
+        console.error('SERVER ERROR (PDF):', error);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Error del servidor al generar PDF: ' + error.message });
+        }
     }
 });
 
