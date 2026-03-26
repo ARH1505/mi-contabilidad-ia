@@ -273,42 +273,39 @@ app.get('/api/export', (req, res) => {
     });
 });
 
-// Generate Booking Report PDF using PDFKit (Exact Literal Text - Compact Final)
+// Generate Booking Report PDF (Larger Text - No Footers)
 app.post('/api/generate-booking-report', async (req, res) => {
     try {
         const data = req.body || {};
         const nombreReserva = (data.nombreReserva || 'Reserva').replace(/[/\\?%*:|"<>]/g, '-');
         
-        // Slightly larger content area
-        const doc = new PDFDocument({ margin: 60, size: 'A4', bufferPages: true });
+        const doc = new PDFDocument({ margin: 70, size: 'A4' });
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="Reserva_${nombreReserva}.pdf"`);
         doc.pipe(res);
 
         const format = (v) => `$ ${parseFloat(v || 0).toLocaleString('es-CO')}`;
-        const footerColor = '#6d28d9';
-        const footerText = 'Calle 32 32-64 local 11 CC. Riviera Plaza Bucaramanga | 3167583928 - 3165791058';
-        const MARGIN_X = 60;
+        const MARGIN_X = 70;
 
         // Header Logo
         const logoPath = path.join(__dirname, 'public', 'report_logo.png');
         if (fs.existsSync(logoPath)) {
-            doc.image(logoPath, MARGIN_X, 30, { width: 90 });
+            doc.image(logoPath, MARGIN_X, 40, { width: 110 });
         }
-        doc.moveDown(4);
+        doc.moveDown(7);
 
         // Title
-        doc.font('Helvetica-Bold').fontSize(13).text('INFORME DE SU RESERVA', MARGIN_X, doc.y, { align: 'center' });
-        doc.moveDown(0.8);
+        doc.font('Helvetica-Bold').fontSize(16).text('INFORME DE SU RESERVA', MARGIN_X, doc.y, { align: 'center' });
+        doc.moveDown(2);
 
         const drawLine = (label, value) => {
-            doc.font('Helvetica').fontSize(8.5).fillColor('#000000').text(label, MARGIN_X, doc.y, { continued: true });
+            doc.font('Helvetica').fontSize(11).fillColor('#000000').text(label, MARGIN_X, doc.y, { continued: true });
             doc.font('Helvetica-Bold').text(String(value || ''));
-            doc.moveDown(0.15);
+            doc.moveDown(0.5);
         };
 
-        // --- INFO ---
+        // --- SECTION 1: BASIC INFO ---
         drawLine('Fecha de la Reserva: ', `${data.fechaReserva || ''} de 2026`);
         drawLine('Nombre de la Reserva: ', `${data.nombreReserva || ''}    C.C : ${data.ccReserva || ''}`);
         drawLine('Personas: ', data.personas);
@@ -319,7 +316,9 @@ app.post('/api/generate-booking-report', async (req, res) => {
         drawLine('Valor noche Adicional: ', format(data.valorNocheAdicional));
         drawLine('Valor total del Arriendo mensual: ', format(data.valorTotalArriendo));
         
-        doc.moveDown(0.3);
+        doc.moveDown(1);
+
+        // Financials
         drawLine('BONO REMBOLSABLE: ', `${format(data.bonoReembolsable)} por pérdidas o daños.`);
         drawLine('Aseo: ', format(data.aseo));
         
@@ -328,52 +327,62 @@ app.post('/api/generate-booking-report', async (req, res) => {
         const saldo = total - res30;
 
         drawLine('Total: ', format(total));
+        doc.moveDown(1);
         drawLine('Valor para reservación (30% del total) ', format(res30));
         drawLine('Saldo al entrar al apartamento: ', format(saldo));
         
-        doc.font('Helvetica').fontSize(8.5).text(`De los cuales `, { continued: true });
+        doc.font('Helvetica').fontSize(11).text('De los cuales ', { continued: true });
         doc.font('Helvetica-Bold').text(`${format(data.bonoReembolsable)}`, { continued: true });
-        doc.font('Helvetica').text(` son reembolsables al revisar el inventario y este al dia.`);
+        doc.font('Helvetica').text(' son reembolsables al revisar el inventario y este al dia.');
 
-        doc.moveDown(0.3);
-        doc.fontSize(8).text('• La comisión de la consignación bancaria debe ser paga por el huésped.');
-        doc.text('• Al momento de la llegada se debe cancelar la totalidad del dinero.');
-        doc.text(`• Tarifa de limpieza única: ${format(data.aseo)}. No incluida en el alquiler (se paga una vez).`);
+        doc.moveDown(1);
+        doc.font('Helvetica').fontSize(11).text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped');
+        doc.text('En el momento de la llegada se debe cancelar la totalidad del dinero.');
+        doc.text(`Todas las propiedades tienen una tarifa de limpieza de COP ${format(data.aseo)}. Esta tarifa No está incluida en el valor del alquiler y se paga una sola vez por la propiedad (no es por persona ni por noche).`);
 
-        doc.moveDown(0.8);
+        doc.moveDown(2);
 
-        // --- LEGAL (Compact) ---
-        doc.fontSize(8).text('Seguro médico incluido en caso de accidente. El ingreso de personas extra genera incumplimiento ($50.000 diarios). El depósito se reintegra tras revisión de inventario (hasta 60 días para meses).', { align: 'justify' });
-        doc.font('Helvetica-Bold').text('Check-in: 3:00 PM | Check-out: 12:00 PM');
+        // --- SECTION 2: LEGAL TEXTS (LITERAL) ---
+        doc.fontSize(10.5).text('Contamos con seguro médico en caso de accidente o enfermedad que ocurra dentro del inmueble. Pregúntame cómo obtenerlo');
+        doc.moveDown();
+        doc.text('El ingreso de un número de personas mayor a las autorizadas, genera incumplimiento del contrato. Por tanto, se podrá dar por cancelado el mismo sin devolución alguna del dinero recibido. En caso de autorizarse, el valor por persona extra es de $50.000 DIARIO', { align: 'justify' });
+        doc.moveDown();
+        doc.text('El valor del depósito se reintegra cuando el propietario revise el inventario En contratos celebrados a meses, el depósito será devuelto 60 días después de la salida', { align: 'justify' });
+        doc.moveDown();
+        doc.font('Helvetica-Bold').text('Hora de entrada (check in): 3:00 PM');
+        doc.text('Hora de salida (check out): 12:00 PM');
 
-        doc.moveDown(0.8);
-        doc.font('Helvetica-Bold').text('POLÍTICAS DE CANCELACIÓN Y ENTREGA');
-        doc.font('Helvetica').text('El 30% de reserva no es reembolsable. El huésped debe cancelar el 100% a más tardar el día de la entrega (o no se darán llaves). Documentación obligatoria enviada a rentahouse01@hotmail.com.', { align: 'justify' });
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('CLÁUSULA X — POLÍTICAS DE CANCELACIÓN, REEMBOLSO Y CONDICIONES DE ENTREGA DEL INMUEBLE');
+        doc.font('Helvetica').text('En el momento en que se realiza la reserva, el apartamento se retira de la plataforma lo que impide que pueda ser tomado por otras personas. Por esta razón, el inmueble pierde la posibilidad de volver a ofrecerse y, en consecuencia, el 30% pagado por concepto de reserva no es reembolsable.', { align: 'justify' });
+        
+        doc.moveDown();
+        doc.font('Helvetica-Bold').text('CONDICIONES DE PAGO PREVIO AL INGRESO');
+        doc.font('Helvetica').text('El arrendatario deberá cancelar el cien por ciento (100%) del valor total del alojamiento a más tardar el día de la entrega del apto.');
+        doc.text('En caso contrario, no se entregarán las llaves del inmueble.');
 
-        doc.moveDown(0.8);
-        doc.font('Helvetica-Bold').text('ACEPTACIÓN');
-        doc.font('Helvetica').text('El ARRENDATARIO acepta todas las condiciones de este contrato simplificado. El silencio por 24 horas tras el envío de este documento constituye consentimiento tácito y aceptación total.', { align: 'justify' });
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('DOCUMENTACIÓN OBLIGATORIA PARA LA ENTREGA DEL INMUEBLE');
+        doc.font('Helvetica').text('El arrendatario deberá suscribir y entregar, en original y copia, los siguientes documentos:');
+        doc.text('Acepta términos y condiciones: rentahouse01@hotmail.com - rentahouse@gmail.com');
 
-        doc.moveDown(1.5);
-        doc.font('Helvetica-Bold').fontSize(10).text('METODO DE PAGO');
-        doc.font('Helvetica').fontSize(8.5).text(data.metodoPago || 'Bancolombia Ahorros #02046147939');
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
+        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE.');
+
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('4. Aceptación por Silencio del Arrendatario');
+        doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.');
+
+        doc.moveDown(0.5);
+        doc.text('La falta de respuesta se interpretará como consentimiento tácito, dado que la información fue remitida al medio de contacto registrado y el ARRENDATARIO no manifestó oposición en el tiempo establecido.');
+
+        doc.moveDown(3);
+        doc.font('Helvetica-Bold').fontSize(11).text('METODO DE PAGO');
+        doc.font('Helvetica').fontSize(10.5).text(data.metodoPago || 'TRANSFERENCIA BANCARIA');
         doc.text('Calle 32 # 32 – 64 Local 11 Centro Comercial Riviera Plaza Bucaramanga.');
-        doc.font('Helvetica-Bold').text('ALQUILER RENTA HOUSE');
-
-        // Footers logic - CRITICAL: Check if page has content
-        const range = doc.bufferedPageRange();
-        for (let i = range.start; i < range.start + range.count; i++) {
-            doc.switchToPage(i);
-            
-            // If doc.y is still at the top (60) or near it, the page is likely a ghost page
-            // But usually, if it's the last page and doc.y < 80, it's empty.
-            if (i === range.start + range.count - 1 && doc.y < 80) {
-                // Skip empty last page footer (and it won't be seen if no text is on it)
-                continue;
-            }
-            
-            doc.fontSize(8).fillColor(footerColor).text(footerText, 50, 785, { align: 'center' });
-        }
+        doc.font('Helvetica-Bold').text('TRANSFERENCIA O CONSIGNACIÓN');
+        doc.text('BANCOLOMBIA CUENTA DE AHORROS # 02046147939');
 
         doc.end();
 
