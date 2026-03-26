@@ -71,6 +71,7 @@ body {
     font-weight: 700;
     background: linear-gradient(to right, #fff, #a5b4fc);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -746,7 +747,6 @@ button {
     padding: 0 40px;
     background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(10px);
-    border-top: 1px solid var(--glass-border);
     z-index: 50;
     pointer-events: none; /* Allow clicking through if needed, though usually not for logos */
 }
