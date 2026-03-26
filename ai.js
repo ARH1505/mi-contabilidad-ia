@@ -47,6 +47,9 @@ Reglas Específicas de la Empresa (Inmobiliaria):
 - Cuando el usuario indique que la empresa comisionó o cobró un valor a favor de la empresa por "aseo", la ganancia llévala a 415570 (Comisiones por aseo) en el Crédito.
 - Cuando el usuario indique que la empresa PAGA por el concepto de "aseo" de un apartamento, ese pago plásmalo afectando la cuenta 2320 (A contratistas).
 - El 4x1000 o Gravamen a Movimientos Financieros (GMF) se debe cargar a la cuenta 530510.
+- Cuando el usuario mencione un "gasto personal de Milena":
+  1. Si sale de banco: 5400 (Débito) vs 1110 (Crédito).
+  2. Si sale de caja: 5400 (Débito) vs 1105 (Crédito).
 - Siempre cuadra la partida doble con exactitud usando esta lógica.
 
 Devuelve ÚNICAMENTE un objeto JSON válido con la siguiente estructura (NO incluyas markdown, ni explicación, solo el JSON puro):

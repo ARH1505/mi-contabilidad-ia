@@ -116,6 +116,7 @@ function initDb() {
                     ['5195', 'Diversos', 'Gastos'],
                     ['5305', 'Gastos financieros', 'Gastos'],
                     ['530510', 'Gastos bancarios (GMF / 4x1000)', 'Gastos'],
+                    ['5400', 'PERSONAL MILENA', 'Gastos'],
                     ['6135', 'Costo de comercio al por mayor y al por menor', 'Costos']
                 ];
                 puc.forEach(account => stmt.run(account));
