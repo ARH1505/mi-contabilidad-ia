@@ -393,15 +393,14 @@ app.post('/api/generate-booking-report', async (req, res) => {
             // Nueva función para alinear texto sin usar tablas en la cabecera
             const drawHeaderRow = (l1, v1, l2, v2) => {
                 const currentY = doc.y;
+                // Columna 1: Etiqueta y Valor
                 doc.font('Helvetica-Bold').fontSize(10).text(l1, MARGIN_X, currentY, { continued: true });
-                doc.font('Helvetica').fontSize(10).text(` ${v1} `, { continued: true });
+                doc.font('Helvetica').fontSize(10).text(` ${v1} `, { width: 250, continued: !!l2 });
                 
                 if (l2) {
-                    // Posicionamos la segunda etiqueta en X=280 para que no se vea tan a la derecha
-                    doc.font('Helvetica-Bold').text(l2, 280, currentY, { continued: true });
-                    doc.font('Helvetica').text(` ${v2 || ''}`);
-                } else {
-                    doc.text('');
+                    // Columna 2: Etiqueta y Valor alineados a partir de X=310 para dar aire
+                    doc.font('Helvetica-Bold').text(l2, 310, currentY, { continued: true });
+                    doc.font('Helvetica').text(` ${v2 || ''}`, { width: 200 });
                 }
                 doc.moveDown(0.5);
             };
