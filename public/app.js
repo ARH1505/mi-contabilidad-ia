@@ -604,12 +604,17 @@ if (bookingForm) {
             metodoPago: document.getElementById('metodoPago').value
         };
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
         try {
             const response = await fetch('/api/generate-booking-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formData),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
 
             if (!response.ok) throw new Error('Error en la generación del PDF');
 
@@ -623,8 +628,13 @@ if (bookingForm) {
             window.URL.revokeObjectURL(url);
             showToast('PDF generado y descargado con éxito');
         } catch (error) {
+            clearTimeout(timeoutId);
             console.error(error);
-            showToast('Error al generar el PDF', true);
+            if (error.name === 'AbortError') {
+                showToast('La generación tomó demasiado tiempo. Inténtalo de nuevo.', true);
+            } else {
+                showToast('Error al generar el PDF', true);
+            }
         } finally {
             generateBtn.innerHTML = originalBtnHtml;
             generateBtn.disabled = false;

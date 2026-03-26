@@ -773,6 +773,26 @@ button {
     padding-bottom: 80px !important;
 }
 
+/* Document Generator Header Refinement */
+.docs-header {
+    display: flex;
+    justify-content: space-between !important;
+    align-items: flex-end;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 10px;
+}
+
+.docs-header h2 {
+    font-size: 22px;
+    margin: 0;
+}
+
+.docs-header small {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
 /* Document Generator Form Styles */
 .glass-form-container {
     background: rgba(0, 0, 0, 0.2);
