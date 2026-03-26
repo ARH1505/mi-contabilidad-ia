@@ -423,21 +423,22 @@ app.post('/api/generate-booking-report', async (req, res) => {
             const col2Width = tableWidth - col1Width;
             const rowHeight = 25;
 
-            const drawRow = (label, value) => {
+            const drawRow = (label, value, customHeight = 25) => {
                 const currentY = doc.y;
-                doc.rect(MARGIN_X, currentY, tableWidth, rowHeight).stroke();
-                doc.moveTo(MARGIN_X + col1Width, currentY).lineTo(MARGIN_X + col1Width, currentY + rowHeight).stroke();
+                const h = customHeight;
+                doc.rect(MARGIN_X, currentY, tableWidth, h).stroke();
+                doc.moveTo(MARGIN_X + col1Width, currentY).lineTo(MARGIN_X + col1Width, currentY + h).stroke();
 
-                doc.font('Helvetica-Bold').fontSize(9).text(label, MARGIN_X + 5, currentY + 7, { width: col1Width - 10 });
+                doc.font('Helvetica-Bold').fontSize(9).text(label, MARGIN_X + 5, currentY + 5, { width: col1Width - 10 });
                 doc.font('Helvetica').fontSize(10).text(String(value || ''), MARGIN_X + col1Width + 5, currentY + 7, { width: col2Width - 10 });
                 
-                doc.y = currentY + rowHeight;
+                doc.y = currentY + h;
             };
 
             drawRow('DIRECCION DE INMUEBLE', data.direccionInmueble);
-            drawRow('FECHA DE INGRESO', `${data.entrada || ''} DE 2026`);
-            drawRow('FECHA DE SALIDA', `${data.salida || ''} DE 2026`);
-            drawRow('CANON DE ARRENDAMIENTO MENSUAL. LIBRE DE RETENCION EN LA FUENTE.', format(data.valorTotalArriendo));
+            drawRow('FECHA DE INGRESO', `${data.entrada || ''}`);
+            drawRow('FECHA DE SALIDA', `${data.salida || ''}`);
+            drawRow('CANON DE ARRENDAMIENTO MENSUAL. LIBRE DE RETENCION EN LA FUENTE.', format(data.valorTotalArriendo), 35);
             drawRow('IVA', '$ 0');
             drawRow('RETENCION EN LA FUENTE', '$ 0');
             drawRow('VALOR POR NOCHE ADICIONAL', format(data.valorNocheAdicional));
