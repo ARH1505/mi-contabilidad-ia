@@ -392,17 +392,28 @@ app.post('/api/generate-booking-report', async (req, res) => {
             const MARGIN_X = 50;
             // Nueva función para alinear texto sin usar tablas en la cabecera
             const drawHeaderRow = (l1, v1, l2, v2) => {
-                const currentY = doc.y;
-                // Columna 1: Etiqueta y Valor
-                doc.font('Helvetica-Bold').fontSize(10).text(l1, MARGIN_X, currentY, { continued: true });
-                doc.font('Helvetica').fontSize(10).text(` ${v1} `, { width: 250, continued: !!l2 });
+                const startY = doc.y;
+                const label1X = MARGIN_X;
+                const value1X = label1X + 100;
+                const label2X = 310;
+                const value2X = label2X + 110;
+
+                // Columna 1
+                doc.font('Helvetica-Bold').fontSize(10).text(l1, label1X, startY, { width: 95 });
+                doc.font('Helvetica').fontSize(10).text(String(v1 || ''), value1X, startY, { width: 155 });
                 
+                const height1 = doc.y - startY;
+
+                // Columna 2
+                let height2 = 0;
                 if (l2) {
-                    // Columna 2: Etiqueta y Valor alineados a partir de X=310 para dar aire
-                    doc.font('Helvetica-Bold').text(l2, 310, currentY, { continued: true });
-                    doc.font('Helvetica').text(` ${v2 || ''}`, { width: 200 });
+                    doc.font('Helvetica-Bold').fontSize(10).text(l2, label2X, startY, { width: 105 });
+                    doc.font('Helvetica').fontSize(10).text(String(v2 || ''), value2X, startY, { width: 135 });
+                    height2 = doc.y - startY;
                 }
-                doc.moveDown(0.5);
+
+                // Aseguramos que doc.y baje lo suficiente según la columna más alta
+                doc.y = startY + Math.max(height1, height2) + 5;
             };
 
             // Dibujamos la cabecera en texto plano pero alineado
