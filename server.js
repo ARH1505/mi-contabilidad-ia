@@ -450,15 +450,15 @@ app.post('/api/generate-booking-report', async (req, res) => {
             drawRow('NUMERO DE PERSONAS', data.personas);
 
             doc.moveDown(2);
-            doc.font('Helvetica-Bold').fontSize(11).text('CONDICIONES GENERALES');
+            doc.font('Helvetica-Bold').fontSize(11).text('CONDICIONES GENERALES', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(1);
 
             const legalText = (title, body) => {
                 if (title) {
-                    doc.font('Helvetica-Bold').fontSize(10).text(title);
+                    doc.font('Helvetica-Bold').fontSize(10).text(title, MARGIN_X, doc.y, { align: 'left' });
                     doc.moveDown(0.3);
                 }
-                doc.font('Helvetica').fontSize(10).text(body, { align: 'justify' });
+                doc.font('Helvetica').fontSize(10).text(body, MARGIN_X, doc.y, { align: 'justify', width: 512 });
                 doc.moveDown(1);
             };
 
@@ -489,18 +489,18 @@ app.post('/api/generate-booking-report', async (req, res) => {
             legalText('PARÁGRAFO 2.-', `El incumplimiento por parte del ARRENDATARIO de cualquiera de las cláusulas de este contrato, lo constituirá en deudor del ARRENDADOR por una suma equivalente al valor de lo cancelado por concepto del alquiler pactado.`);
 
             doc.moveDown(2);
-            doc.font('Helvetica-Bold').fontSize(10).text('ARRENDADOR:');
+            doc.font('Helvetica-Bold').fontSize(10).text('ARRENDADOR:', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(2);
-            doc.text('_________________________________');
-            doc.text('YOJANNA YULIETH SERRANO GOMEZ');
-            doc.text('CC 1.095.827.048');
+            doc.text('_________________________________', MARGIN_X, doc.y);
+            doc.text('YOJANNA YULIETH SERRANO GOMEZ', MARGIN_X, doc.y);
+            doc.text('CC 1.095.827.048', MARGIN_X, doc.y);
 
             doc.moveDown(3);
-            doc.text('ARRENDATARIO:');
+            doc.text('ARRENDATARIO:', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(2);
-            doc.text('_________________________________');
-            doc.text(String(data.nombreReserva).toUpperCase());
-            doc.text(`CC. ${data.ccReserva}`);
+            doc.text('_________________________________', MARGIN_X, doc.y);
+            doc.text(String(data.nombreReserva).toUpperCase(), MARGIN_X, doc.y);
+            doc.text(`CC. ${data.ccReserva}`, MARGIN_X, doc.y);
 
             doc.end();
         }
