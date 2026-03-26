@@ -417,10 +417,11 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.moveDown(1);
 
             // Table Drawing helper
-            const startY = doc.y;
             const tableWidth = 512;
-            const col1Width = 180;
-            const col2Width = tableWidth - col1Width;
+            const col1Width = 160;
+            const col2Width = 120;
+            const col3Width = 150; // Aumentado para acomodar "TIPO Y NUMERO DE ID:"
+            const col4Width = 82;  // Ajustado para manter el total de 512
             const rowHeight = 25;
 
             const drawRow = (label, value, customHeight = 25) => {
@@ -431,6 +432,32 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
                 doc.font('Helvetica-Bold').fontSize(9).text(label, MARGIN_X + 5, currentY + 5, { width: col1Width - 10 });
                 doc.font('Helvetica').fontSize(10).text(String(value || ''), MARGIN_X + col1Width + 5, currentY + 7, { width: col2Width - 10 });
+                
+                doc.y = currentY + h;
+            };
+
+            const drawRowExtended = (label1, value1, label2, value2, customHeight = 25) => {
+                const currentY = doc.y;
+                const h = customHeight;
+                const startX = MARGIN_X;
+
+                // Draw outer rectangle
+                doc.rect(startX, currentY, tableWidth, h).stroke();
+
+                // Draw vertical lines for 4 columns
+                doc.moveTo(startX + col1Width, currentY).lineTo(startX + col1Width, currentY + h).stroke();
+                doc.moveTo(startX + col1Width + col2Width, currentY).lineTo(startX + col1Width + col2Width, currentY + h).stroke();
+                doc.moveTo(startX + col1Width + col2Width + col3Width, currentY).lineTo(startX + col1Width + col2Width + col3Width, currentY + h).stroke();
+
+                // First label and value
+                doc.font('Helvetica-Bold').fontSize(9).text(label1, startX + 5, currentY + 5, { width: col1Width - 10 });
+                doc.font('Helvetica').fontSize(10).text(String(value1 || ''), startX + col1Width + 5, currentY + 7, { width: col2Width - 10 });
+
+                // Second label and value (aligned)
+                if (label2) {
+                    doc.font('Helvetica-Bold').fontSize(9).text(label2, startX + col1Width + col2Width + 5, currentY + 5, { width: col3Width - 10 });
+                    doc.font('Helvetica').fontSize(10).text(String(value2 || ''), startX + col1Width + col2Width + col3Width + 5, currentY + 7, { width: col4Width - 10 });
+                }
                 
                 doc.y = currentY + h;
             };
