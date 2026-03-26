@@ -273,7 +273,7 @@ app.get('/api/export', (req, res) => {
     });
 });
 
-// Generate Booking Report PDF using PDFKit (Clean Professional Document)
+// Generate Booking Report PDF using PDFKit (Exact Literal Text)
 app.post('/api/generate-booking-report', async (req, res) => {
     try {
         const data = req.body || {};
@@ -290,101 +290,132 @@ app.post('/api/generate-booking-report', async (req, res) => {
         const footerText = 'Calle 32 32-64 local 11 CC. Riviera Plaza Bucaramanga | 3167583928 - 3165791058';
         const MARGIN_X = 70;
 
-        // Helper for simple professional lines
-        const drawLine = (label, value, isBold = false) => {
-            const val = String(value || '');
-            doc.font('Helvetica').fontSize(10).fillColor('#000000').text(label, MARGIN_X, doc.y, { continued: true });
-            doc.font('Helvetica-Bold').text(val);
-            doc.moveDown(0.4);
-        };
-
-        // --- HEADER ---
+        // Header Logo
         const logoPath = path.join(__dirname, 'public', 'report_logo.png');
         if (fs.existsSync(logoPath)) {
             doc.image(logoPath, MARGIN_X, 40, { width: 100 });
         }
-
         doc.moveDown(6);
-        doc.fillColor('#000000').font('Helvetica-Bold').fontSize(14).text('INFORME DE SU RESERVA', MARGIN_X, doc.y, { align: 'left' });
-        doc.moveDown(1.5);
 
-        // --- SECTION 1: BASIC INFO ---
-        drawLine('Fecha de la Reserva: ', data.fechaReserva);
-        drawLine('Nombre de la Reserva: ', data.nombreReserva);
-        drawLine('C.C : ', data.ccReserva);
+        // Main Title
+        doc.font('Helvetica-Bold').fontSize(14).text('INFORME DE SU RESERVA', MARGIN_X, doc.y, { align: 'center' });
+        doc.moveDown(2);
+
+        // --- SECTION 1: BASIC INFO (LITERAL) ---
+        const drawLine = (label, value) => {
+            doc.font('Helvetica').fontSize(10).fillColor('#000000').text(label, MARGIN_X, doc.y, { continued: true });
+            doc.font('Helvetica-Bold').text(String(value || ''));
+            doc.moveDown(0.3);
+        };
+
+        drawLine('Fecha de la Reserva: ', `${data.fechaReserva || ''} de 2026`);
+        drawLine('Nombre de la Reserva: ', `${data.nombreReserva || ''}    C.C : ${data.ccReserva || ''}`);
         drawLine('Personas: ', data.personas);
         drawLine('CODIGO DE LA RESERVA: ', data.codigoReserva);
         drawLine('Dirección del inmueble: ', data.direccionInmueble);
-        drawLine('Entrada: ', data.entrada);
-        drawLine('Salida: ', data.salida);
+        drawLine('Entrada: ', `${data.entrada || ''} DE 2026`);
+        drawLine('Salida: ', `${data.salida || ''} DE 2026`);
         drawLine('Valor noche Adicional: ', format(data.valorNocheAdicional));
         drawLine('Valor total del Arriendo mensual: ', format(data.valorTotalArriendo));
-
-        doc.moveDown(1.5);
-
-        // --- SECTION 2: FINANCIALS ---
-        doc.font('Helvetica-Bold').fontSize(10).text('RESUMEN ECONÓMICO', MARGIN_X, doc.y);
-        doc.moveDown(0.5);
         
-        drawLine('BONO REMBOLSABLE: ', format(data.bonoReembolsable));
-        doc.font('Helvetica').fontSize(9).text('(Por concepto de posibles pérdidas o daños)', { indent: 10 });
-        doc.moveDown(0.5);
+        doc.moveDown(1);
 
+        // Financials (Literal)
+        drawLine('BONO REMBOLSABLE: ', `${format(data.bonoReembolsable)} por pérdidas o daños.`);
         drawLine('Aseo: ', format(data.aseo));
         
-        const arriendo = parseFloat(data.valorTotalArriendo || 0);
-        const aseo = parseFloat(data.aseo || 0);
-        const bono = parseFloat(data.bonoReembolsable || 0);
-        const total = arriendo + aseo + bono;
+        const total = parseFloat(data.valorTotalArriendo || 0) + parseFloat(data.aseo || 0) + parseFloat(data.bonoReembolsable || 0);
         const reserva30 = Math.round(total * 0.3);
         const saldo = total - reserva30;
 
-        drawLine('TOTAL: ', format(total));
+        drawLine('Total: ', format(total));
         doc.moveDown(1);
-        drawLine('Valor para reservación (30% del total): ', format(reserva30));
+        drawLine('Valor para reservación (30% del total) ', format(reserva30));
         drawLine('Saldo al entrar al apartamento: ', format(saldo));
         
-        doc.moveDown(1);
         doc.font('Helvetica').fontSize(10).text(`De los cuales `, { continued: true });
-        doc.font('Helvetica-Bold').text(`${format(bono)}`, { continued: true });
-        doc.font('Helvetica').text(` son reembolsables al realizar el inventario y estar al día.`);
+        doc.font('Helvetica-Bold').text(`${format(data.bonoReembolsable)}`, { continued: true });
+        doc.font('Helvetica').text(` son reembolsables al revisar el inventario y este al dia.`);
+
+        doc.moveDown(1);
+        doc.font('Helvetica').fontSize(10).text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped');
+        doc.text('En el momento de la llegada se debe cancelar la totalidad del dinero.');
+        doc.text(`Todas las propiedades tienen una tarifa de limpieza de COP ${format(data.aseo)}. Esta tarifa No está incluida en el valor del alquiler y se paga una sola vez por la propiedad (no es por persona ni por noche).`);
 
         doc.moveDown(2);
-        doc.font('Helvetica').fontSize(9).text('• La comisión de la consignación bancaria deberá ser asumida por el huésped.');
-        doc.text('• Al momento de la llegada se debe cancelar la totalidad del saldo pendiente.');
-        doc.text(`• Tarifa de limpieza única: ${format(aseo)}. No está incluida en el alquiler y se paga una sola vez.`);
 
-        doc.moveDown(2);
-        
-        // --- SECTION 3: LEGAL ---
-        doc.font('Helvetica-Bold').fontSize(10).text('TÉRMINOS Y CONDICIONES');
-        doc.moveDown(0.5);
-        doc.fontSize(9).font('Helvetica').text('Contamos con seguro médico en caso de accidente o enfermedad dentro del inmueble. El ingreso de personas adicionales a las autorizadas genera incumplimiento de contrato ($50.000 diarios por persona extra). El depósito se reintegra tras revisión de inventario (hasta 60 días para contratos mensuales).', { align: 'justify' });
+        // --- SECTION 2: LEGAL TEXTS (LITERAL BLOCK) ---
+        doc.text('Contamos con seguro médico en caso de accidente o enfermedad que ocurra dentro del inmueble. Pregúntame cómo obtenerlo');
         doc.moveDown();
-        doc.font('Helvetica-Bold').text('Check-in: 3:00 PM | Check-out: 12:00 PM');
-
-        doc.moveDown(1.5);
-        doc.font('Helvetica-Bold').text('CLÁUSULA DE CANCELACIÓN');
-        doc.fontSize(9).font('Helvetica').text('El 30% de la reserva no es reembolsable debido a que el inmueble se retira de comercialización para su estancia.', { align: 'justify' });
-        
+        doc.text('El ingreso de un número de personas mayor a las autorizadas, genera incumplimiento del contrato. Por tanto, se podrá dar por cancelado el mismo sin devolución alguna del dinero recibido. En caso de autorizarse, el valor por persona extra es de $50.000 DIARIO');
         doc.moveDown();
-        doc.font('Helvetica-Bold').text('DOCUMENTACIÓN');
-        doc.fontSize(9).font('Helvetica').text('El arrendatario acepta los términos enviando copia de documentos a rentahouse01@hotmail.com. El silencio por 24 horas tras este envío constituye aceptación total.', { align: 'justify' });
+        doc.text('El valor del depósito se reintegra cuando el propietario revise el inventario En contratos celebrados a meses, el depósito será devuelto 60 días después de la salida');
+        doc.moveDown();
+        doc.font('Helvetica-Bold').text('Hora de entrada (check in): 3:00 PM');
+        doc.text('Hora de salida (check out): 12:00 PM');
 
         doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('CLÁUSULA X — POLÍTICAS DE CANCELACIÓN, REEMBOLSO Y CONDICIONES DE ENTREGA DEL INMUEBLE');
+        doc.font('Helvetica').text('En el momento en que se realiza la reserva, el apartamento se retira de la plataforma lo que impide que pueda ser tomado por otras personas. Por esta razón, el inmueble pierde la posibilidad de volver a ofrecerse y, en consecuencia, el 30% pagado por concepto de reserva no es reembolsable.', { align: 'justify' });
+        
+        doc.moveDown();
+        doc.font('Helvetica-Bold').text('CONDICIONES DE PAGO PREVIO AL INGRESO');
+        doc.font('Helvetica').text('El arrendatario deberá cancelar el cien por ciento (100%) del valor total del alojamiento a más tardar el día de la entrega del apto.');
+        doc.text('En caso contrario, no se entregarán las llaves del inmueble.');
+
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('CONDICIONES DE PAGO PREVIO AL INGRESO');
+        doc.font('Helvetica').text('El arrendatario deberá cancelar el cien por ciento (100%) del valor total del alojamiento a más tardar el día de la entrega del apto.');
+        doc.text('En caso contrario, no se entregarán las llaves del inmueble.');
+
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('DOCUMENTACIÓN OBLIGATORIA PARA LA ENTREGA DEL INMUEBLE');
+        doc.font('Helvetica').text('El arrendatario deberá suscribir y entregar, en original y copia, los siguientes documentos:');
+        doc.text('Acepta términos y condiciones https: rentahouse01@hotmail.com-rentahouse@gmail.com');
+
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
+        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE');
+
+        doc.moveDown();
+        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
+        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE.');
+
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('4. Aceptación por Silencio del Arrendatario');
+        doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.');
+
+        doc.moveDown(2);
+        doc.text('La falta de respuesta se interpretará como consentimiento tácito, dado que la información fue remitida al medio de contacto registrado y el ARRENDATARIO no manifestó oposición en el tiempo establecido.');
+        doc.text('Acepta términos y condiciones https: rentahouse01@hotmail.com-rentahouse@gmail.com');
+
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
+        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE');
+
+        doc.moveDown();
+        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
+        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE.');
+
+        doc.moveDown(2);
+        doc.font('Helvetica-Bold').text('4. Aceptación por Silencio del Arrendatario');
+        doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.');
+
+        doc.moveDown(2);
+        doc.text('La falta de respuesta se interpretará como consentimiento tácito, dado que la información fue remitida al medio de contacto registrado y el ARRENDATARIO no manifestó oposición en el tiempo establecido.');
+
+        doc.moveDown(3);
         doc.font('Helvetica-Bold').fontSize(11).text('METODO DE PAGO');
-        doc.moveDown(0.5);
-        drawLine('Referencia de Pago: ', data.metodoPago || data.nombreReserva);
-        doc.font('Helvetica').fontSize(10).text('TRANSFERENCIA O CONSIGNACIÓN');
-        doc.font('Helvetica-Bold').text('BANCOLOMBIA CUENTA DE AHORROS # 02046147939');
-        doc.font('Helvetica').fontSize(9).text('A nombre de: ALQUILER RENTA HOUSE');
+        doc.font('Helvetica').fontSize(10).text(data.metodoPago || '');
+        doc.text('Calle 32 # 32 – 64 Local 11 Centro Comercial Riviera Plaza Bucaramanga.');
+        doc.font('Helvetica-Bold').text('TRANSFERENCIA O CONSIGNACIÓN');
+        doc.text('BANCOLOMBIA CUENTA DE AHORROS # 02046147939');
 
-        // Footers
+        // Footers on every page
         const pageCount = doc.bufferedPageRange().count;
         for (let i = 0; i < pageCount; i++) {
             doc.switchToPage(i);
-            doc.fontSize(8).fillColor(footerColor).text(footerText, 50, 790, { align: 'center' });
-            doc.fontSize(7).fillColor('#94a3b8').text('Generado por Sistema ARH - Contabilidad IA', 50, 802, { align: 'right' });
+            doc.fontSize(8).fillColor(footerColor).text(footerText, 50, 792, { align: 'center' });
         }
 
         doc.end();
