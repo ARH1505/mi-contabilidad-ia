@@ -1,4 +1,5 @@
 require('dotenv').config();
+// Sincronización verificada con Railway via GitHub - Prueba de despliegue automático
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
