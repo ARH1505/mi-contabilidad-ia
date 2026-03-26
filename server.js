@@ -397,9 +397,9 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 doc.font('Helvetica').fontSize(10).text(` ${v1} `, { continued: true });
                 
                 if (l2) {
-                    // Posicionamos la segunda etiqueta siempre en X=330 para alineación perfecta
-                    doc.font('Helvetica-Bold').text(l2, 330, currentY, { continued: true });
-                    doc.font('Helvetica').text(` ${v2}`);
+                    // Posicionamos la segunda etiqueta siempre en X=305 para alineación perfecta y espacio suficiente
+                    doc.font('Helvetica-Bold').text(l2, 305, currentY, { continued: true });
+                    doc.font('Helvetica').text(` ${v2 || ''}`);
                 } else {
                     doc.text('');
                 }
@@ -411,9 +411,9 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.font('Helvetica').fontSize(10).text('ALQUILER RENTA HOUSE representado por YOJANNA YULIETH SERRANO GOMEZ identificada con cédula de ciudadanía # 1’095.827.048 de Bucaramanga, con matrícula mercantil 681907 ubicados en la CALLE. 32 # 32-64 LOCAL 11 CENTRO COMERCIAL RIVERA PLAZA barrio la Aurora, teléfonos 3165791058 – 3167583928- 6076901312', { align: 'justify' });
             doc.moveDown(1);
 
-            drawHeaderRow('ARRENDATARIO:', String(data.nombreReserva).toUpperCase(), 'TIPO Y NUMERO DE ID:', `CC. ${data.ccReserva}`);
-            drawHeaderRow('CORREO:', data.email || '', 'TEL:', data.telefono || '');
-            drawHeaderRow('EN CASO DE EMERGENCIA:', data.contactoEmergencia || '', 'TEL:', data.telefonoEmergencia || '');
+            drawHeaderRow('ARRENDATARIO:', String(data.nombreReserva || '').toUpperCase(), 'TIPO Y NUMERO DE ID:', `CC. ${data.ccReserva || ''}`);
+            drawHeaderRow('CORREO:', data.emailReserva || '', 'TEL:', data.telReserva || '');
+            drawHeaderRow('EN CASO DE EMERGENCIA:', data.emergenciaNombre || '', 'TEL:', data.emergenciaTel || '');
 
             doc.moveDown(1);
 
