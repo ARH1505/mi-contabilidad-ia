@@ -484,15 +484,20 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 
                 doc.x = MARGIN_X;
                 const words = body.split(/(\s+)/);
-                words.forEach(word => {
+                words.forEach((word, index) => {
+                    const isLast = index === words.length - 1;
                     const clean = word.trim();
                     const isUpper = clean.length >= 2 && /^[^a-z]+$/.test(clean) && /[A-ZÁÉÍÓÚÑ]/.test(clean);
+                    
                     doc.font(isUpper ? 'Helvetica-Bold' : 'Helvetica').fontSize(10);
-                    // Usar lineGap para dar aire entre líneas
-                    doc.text(word, { continued: true, width: 512, align: 'justify', lineGap: 2 });
+                    // Importante: No repetir width en cada palabra si es continued
+                    doc.text(word, { 
+                        continued: !isLast, 
+                        align: 'justify',
+                        lineGap: 2
+                    });
                 });
-                doc.text('', { continued: false });
-                doc.moveDown(1); // Forzar bajada para que la siguiente sección no se pegue
+                doc.moveDown(1);
             };
 
             legalText('PRIMERA:', `El canon de arrendamiento deberá estar cancelado a su totalidad momento de la entrega del inmueble. Y mes a mes dos días antes del ${data.salida || 'vencimiento'} que es la fecha de vencimiento del contrato, si por incumplimiento no se llegará a realizar el pago oportunamente, EN LA FECHA ACORDADA, EL ARRENDATARIO, autoriza amplia y de manera total AL ARRENDADOR, a acceder al inmueble arrendado, tomar como prenda de respaldo sus pertenencias, cambiar las guardas y hacer uso de sus facultades como encargado para reestablecer el poder de la propiedad, renunciando a interponer acciones jurídicas o policivas para conservar su estadía morosa en el inmueble, así como renunciar a cualquier tipo de cobro por este motivo.`);
