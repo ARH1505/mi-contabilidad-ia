@@ -395,25 +395,35 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 const startY = doc.y;
                 const label1X = MARGIN_X;
                 const value1X = label1X + 100;
-                const label2X = 310;
-                const value2X = label2X + 110;
+                const label2X = 290; // Movido un poco a la izquierda para dar más espacio al label2
+                const value2X = label2X + 125; // Espacio para el label2
 
-                // Columna 1
-                doc.font('Helvetica-Bold').fontSize(10).text(l1, label1X, startY, { width: 95 });
-                doc.font('Helvetica').fontSize(10).text(String(v1 || ''), value1X, startY, { width: 155 });
+                // Medimos la altura necesaria para que no se monte la siguiente fila
+                doc.font('Helvetica-Bold').fontSize(10);
+                const hL1 = doc.heightOfString(l1, { width: 95 });
+                doc.font('Helvetica').fontSize(10);
+                const hV1 = doc.heightOfString(String(v1 || ''), { width: 135 });
                 
-                const height1 = doc.y - startY;
-
-                // Columna 2
-                let height2 = 0;
+                let hL2 = 0, hV2 = 0;
                 if (l2) {
-                    doc.font('Helvetica-Bold').fontSize(10).text(l2, label2X, startY, { width: 105 });
-                    doc.font('Helvetica').fontSize(10).text(String(v2 || ''), value2X, startY, { width: 135 });
-                    height2 = doc.y - startY;
+                    doc.font('Helvetica-Bold').fontSize(10);
+                    hL2 = doc.heightOfString(l2, { width: 120 });
+                    doc.font('Helvetica').fontSize(10);
+                    hV2 = doc.heightOfString(String(v2 || ''), { width: 135 });
                 }
 
-                // Aseguramos que doc.y baje lo suficiente según la columna más alta
-                doc.y = startY + Math.max(height1, height2) + 5;
+                const totalRowHeight = Math.max(hL1, hV1, hL2, hV2);
+
+                // Dibujamos
+                doc.font('Helvetica-Bold').fontSize(10).text(l1, label1X, startY, { width: 95 });
+                doc.font('Helvetica').fontSize(10).text(String(v1 || ''), value1X, startY, { width: 135 });
+                
+                if (l2) {
+                    doc.font('Helvetica-Bold').fontSize(10).text(l2, label2X, startY, { width: 120 });
+                    doc.font('Helvetica').fontSize(10).text(String(v2 || ''), value2X, startY, { width: 135 });
+                }
+
+                doc.y = startY + totalRowHeight + 6; // +6 de margen entre filas
             };
 
             // Dibujamos la cabecera en texto plano pero alineado
