@@ -335,67 +335,57 @@ app.post('/api/generate-booking-report', async (req, res) => {
         doc.font('Helvetica-Bold').text(`${format(data.bonoReembolsable)}`, { continued: true });
         doc.font('Helvetica').text(' son reembolsables al revisar el inventario y este al dia.');
 
-        doc.moveDown(1); // Added for spacing before next section
+        doc.moveDown(1.5);
         doc.font('Helvetica').fontSize(11).text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped');
-        doc.moveDown(0.5); // Added spacing
+        doc.moveDown(1);
         doc.text('En el momento de la llegada se debe cancelar la totalidad del dinero.');
-        doc.moveDown(0.5); // Added spacing
+        doc.moveDown(1);
         doc.text(`Todas las propiedades tienen una tarifa de limpieza de COP ${format(data.aseo)}. Esta tarifa No está incluida en el valor del alquiler y se paga una sola vez por la propiedad (no es por persona ni por noche).`);
 
-        doc.moveDown(2);
+        doc.moveDown(2.5);
 
         // --- SECTION 2: LEGAL TEXTS (LITERAL) ---
         doc.fontSize(10.5).text('Contamos con seguro médico en caso de accidente o enfermedad que ocurra dentro del inmueble. Pregúntame cómo obtenerlo');
-        doc.moveDown(1); // Increased spacing
+        doc.moveDown(1.5);
         doc.text('El ingreso de un número de personas mayor a las autorizadas, genera incumplimiento del contrato. Por tanto, se podrá dar por cancelado el mismo sin devolución alguna del dinero recibido. En caso de autorizarse, el valor por persona extra es de $50.000 DIARIO', { align: 'justify' });
-        doc.moveDown(1); // Increased spacing
+        doc.moveDown(1.5);
         doc.text('El valor del depósito se reintegra cuando el propietario revise el inventario En contratos celebrados a meses, el depósito será devuelto 60 días después de la salida', { align: 'justify' });
-        doc.moveDown(1); // Increased spacing
+        doc.moveDown(1.5);
         doc.font('Helvetica-Bold').text('Hora de entrada (check in): 3:00 PM');
-        doc.moveDown(0.5); // Added spacing
-        doc.text('Hora de salida (check out): 12:00 PM');
+        doc.moveDown(1);
+        doc.font('Helvetica').text('Hora de salida (check out): 12:00 PM');
 
         doc.moveDown(2);
         doc.font('Helvetica-Bold').text('CLÁUSULA X — POLÍTICAS DE CANCELACIÓN, REEMBOLSO Y CONDICIONES DE ENTREGA DEL INMUEBLE');
-        doc.moveDown(1); // Added after bold title
+        doc.moveDown(1);
         doc.font('Helvetica').text('En el momento en que se realiza la reserva, el apartamento se retira de la plataforma lo que impide que pueda ser tomado por otras personas. Por esta razón, el inmueble pierde la posibilidad de volver a ofrecerse y, en consecuencia, el 30% pagado por concepto de reserva no es reembolsable.', { align: 'justify' });
         
-        doc.moveDown(1); // Increased spacing
-        doc.font('Helvetica-Bold').text('CONDICIONES DE PAGO PREVIO AL INGRESO');
-        doc.moveDown(1); // Added after bold title
-        doc.font('Helvetica').text('El arrendatario deberá cancelar el cien por ciento (100%) del valor total del alojamiento a más tardar el día de la entrega del apto.');
-        doc.moveDown(0.5); // Added spacing
-        doc.text('En caso contrario, no se entregarán las llaves del inmueble.');
+        doc.moveDown(2.5);
 
-        doc.moveDown(2);
-        doc.font('Helvetica-Bold').text('DOCUMENTACIÓN OBLIGATORIA PARA LA ENTREGA DEL INMUEBLE');
-        doc.moveDown(1); // Added after bold title
-        doc.font('Helvetica').text('El arrendatario deberá suscribir y entregar, en original y copia, los siguientes documentos:');
-        doc.moveDown(0.5); // Added spacing
-        doc.text('Acepta términos y condiciones: rentahouse01@hotmail.com - rentahouse@gmail.com');
+        doc.font('Helvetica').fontSize(10.5).text('Acepta términos y condiciones https: rentahouse01@hotmail.com - rentahouse@gmail.com');
+        doc.moveDown(1.5);
 
-        doc.moveDown(2);
         doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
-        doc.moveDown(1); // Added after bold title
+        doc.moveDown(1);
         doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE.');
 
         doc.moveDown(2);
         doc.font('Helvetica-Bold').text('4. Aceptación por Silencio del Arrendatario');
-        doc.moveDown(1); // Added after bold title
-        doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.');
+        doc.moveDown(1);
+        doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.', { align: 'justify' });
 
-        doc.moveDown(0.5);
+        doc.moveDown(1);
         doc.text('La falta de respuesta se interpretará como consentimiento tácito, dado que la información fue remitida al medio de contacto registrado y el ARRENDATARIO no manifestó oposición en el tiempo establecido.');
 
         doc.moveDown(3);
         doc.font('Helvetica-Bold').fontSize(11).text('METODO DE PAGO');
-        doc.moveDown(1); // Added after bold title
+        doc.moveDown(1);
         doc.font('Helvetica').fontSize(10.5).text(data.metodoPago || 'TRANSFERENCIA BANCARIA');
-        doc.moveDown(0.5); // Added spacing
+        doc.moveDown(1);
         doc.text('Calle 32 # 32 – 64 Local 11 Centro Comercial Riviera Plaza Bucaramanga.');
-        doc.moveDown(1); // Added spacing
+        doc.moveDown(1.5);
         doc.font('Helvetica-Bold').text('TRANSFERENCIA O CONSIGNACIÓN');
-        doc.moveDown(0.5); // Added after bold title
+        doc.moveDown(1);
         doc.text('BANCOLOMBIA CUENTA DE AHORROS # 02046147939');
 
         doc.end();
