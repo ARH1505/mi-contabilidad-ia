@@ -397,8 +397,8 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 doc.font('Helvetica').fontSize(10).text(` ${v1} `, { continued: true });
                 
                 if (l2) {
-                    // Posicionamos la segunda etiqueta siempre en X=305 para alineación perfecta y espacio suficiente
-                    doc.font('Helvetica-Bold').text(l2, 305, currentY, { continued: true });
+                    // Posicionamos la segunda etiqueta en X=280 para que no se vea tan a la derecha
+                    doc.font('Helvetica-Bold').text(l2, 280, currentY, { continued: true });
                     doc.font('Helvetica').text(` ${v2 || ''}`);
                 } else {
                     doc.text('');
