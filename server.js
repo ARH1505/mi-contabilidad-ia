@@ -299,15 +299,16 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
         // Main Title
         doc.font('Helvetica-Bold').fontSize(14).text('INFORME DE SU RESERVA', MARGIN_X, doc.y, { align: 'center' });
-        doc.moveDown(2);
+        doc.moveDown(1);
 
-        // --- SECTION 1: BASIC INFO (LITERAL) ---
+        // Helper for text lines
         const drawLine = (label, value) => {
-            doc.font('Helvetica').fontSize(10).fillColor('#000000').text(label, MARGIN_X, doc.y, { continued: true });
+            doc.font('Helvetica').fontSize(9).fillColor('#000000').text(label, MARGIN_X, doc.y, { continued: true });
             doc.font('Helvetica-Bold').text(String(value || ''));
-            doc.moveDown(0.3);
+            doc.moveDown(0.2);
         };
 
+        // --- SECTION 1: BASIC INFO ---
         drawLine('Fecha de la Reserva: ', `${data.fechaReserva || ''} de 2026`);
         drawLine('Nombre de la Reserva: ', `${data.nombreReserva || ''}    C.C : ${data.ccReserva || ''}`);
         drawLine('Personas: ', data.personas);
@@ -318,9 +319,9 @@ app.post('/api/generate-booking-report', async (req, res) => {
         drawLine('Valor noche Adicional: ', format(data.valorNocheAdicional));
         drawLine('Valor total del Arriendo mensual: ', format(data.valorTotalArriendo));
         
-        doc.moveDown(1);
+        doc.moveDown(0.5);
 
-        // Financials (Literal)
+        // Financials
         drawLine('BONO REMBOLSABLE: ', `${format(data.bonoReembolsable)} por pérdidas o daños.`);
         drawLine('Aseo: ', format(data.aseo));
         
@@ -329,93 +330,68 @@ app.post('/api/generate-booking-report', async (req, res) => {
         const saldo = total - reserva30;
 
         drawLine('Total: ', format(total));
-        doc.moveDown(1);
+        doc.moveDown(0.5);
         drawLine('Valor para reservación (30% del total) ', format(reserva30));
         drawLine('Saldo al entrar al apartamento: ', format(saldo));
         
-        doc.font('Helvetica').fontSize(10).text(`De los cuales `, { continued: true });
+        doc.font('Helvetica').fontSize(9).text(`De los cuales `, { continued: true });
         doc.font('Helvetica-Bold').text(`${format(data.bonoReembolsable)}`, { continued: true });
-        doc.font('Helvetica').text(` son reembolsables al revisar el inventario y este al dia.`);
+        doc.font('Helvetica').text(` son reembolsables al realizar el inventario y estar al día.`);
 
-        doc.moveDown(1);
-        doc.font('Helvetica').fontSize(10).text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped');
+        doc.moveDown(0.5);
+        doc.font('Helvetica').fontSize(9).text('La comisión de la consignación cobrada por el banco deberá ser paga por el huésped');
         doc.text('En el momento de la llegada se debe cancelar la totalidad del dinero.');
         doc.text(`Todas las propiedades tienen una tarifa de limpieza de COP ${format(data.aseo)}. Esta tarifa No está incluida en el valor del alquiler y se paga una sola vez por la propiedad (no es por persona ni por noche).`);
 
-        doc.moveDown(2);
+        doc.moveDown(1);
 
         // --- SECTION 2: LEGAL TEXTS (LITERAL BLOCK) ---
-        doc.text('Contamos con seguro médico en caso de accidente o enfermedad que ocurra dentro del inmueble. Pregúntame cómo obtenerlo');
-        doc.moveDown();
-        doc.text('El ingreso de un número de personas mayor a las autorizadas, genera incumplimiento del contrato. Por tanto, se podrá dar por cancelado el mismo sin devolución alguna del dinero recibido. En caso de autorizarse, el valor por persona extra es de $50.000 DIARIO');
-        doc.moveDown();
-        doc.text('El valor del depósito se reintegra cuando el propietario revise el inventario En contratos celebrados a meses, el depósito será devuelto 60 días después de la salida');
-        doc.moveDown();
+        doc.fontSize(8.5).text('Contamos con seguro médico en caso de accidente o enfermedad que ocurra dentro del inmueble. Pregúntame cómo obtenerlo');
+        doc.moveDown(0.5);
+        doc.text('El ingreso de un número de personas mayor a las autorizadas, genera incumplimiento del contrato. Por tanto, se podrá dar por cancelado el mismo sin devolución alguna del dinero recibido. En caso de autorizarse, el valor por persona extra es de $50.000 DIARIO', { align: 'justify' });
+        doc.moveDown(0.5);
+        doc.text('El valor del depósito se reintegra cuando el propietario revise el inventario En contratos celebrados a meses, el depósito será devuelto 60 días después de la salida', { align: 'justify' });
+        doc.moveDown(0.4);
         doc.font('Helvetica-Bold').text('Hora de entrada (check in): 3:00 PM');
         doc.text('Hora de salida (check out): 12:00 PM');
 
-        doc.moveDown(2);
+        doc.moveDown(1);
         doc.font('Helvetica-Bold').text('CLÁUSULA X — POLÍTICAS DE CANCELACIÓN, REEMBOLSO Y CONDICIONES DE ENTREGA DEL INMUEBLE');
         doc.font('Helvetica').text('En el momento en que se realiza la reserva, el apartamento se retira de la plataforma lo que impide que pueda ser tomado por otras personas. Por esta razón, el inmueble pierde la posibilidad de volver a ofrecerse y, en consecuencia, el 30% pagado por concepto de reserva no es reembolsable.', { align: 'justify' });
         
-        doc.moveDown();
+        doc.moveDown(0.5);
         doc.font('Helvetica-Bold').text('CONDICIONES DE PAGO PREVIO AL INGRESO');
         doc.font('Helvetica').text('El arrendatario deberá cancelar el cien por ciento (100%) del valor total del alojamiento a más tardar el día de la entrega del apto.');
         doc.text('En caso contrario, no se entregarán las llaves del inmueble.');
 
-        doc.moveDown(2);
-        doc.font('Helvetica-Bold').text('CONDICIONES DE PAGO PREVIO AL INGRESO');
-        doc.font('Helvetica').text('El arrendatario deberá cancelar el cien por ciento (100%) del valor total del alojamiento a más tardar el día de la entrega del apto.');
-        doc.text('En caso contrario, no se entregarán las llaves del inmueble.');
-
-        doc.moveDown(2);
+        doc.moveDown(0.5);
         doc.font('Helvetica-Bold').text('DOCUMENTACIÓN OBLIGATORIA PARA LA ENTREGA DEL INMUEBLE');
         doc.font('Helvetica').text('El arrendatario deberá suscribir y entregar, en original y copia, los siguientes documentos:');
-        doc.text('Acepta términos y condiciones https: rentahouse01@hotmail.com-rentahouse@gmail.com');
+        doc.text('Acepta términos y condiciones: rentahouse01@hotmail.com - rentahouse@gmail.com');
 
-        doc.moveDown(2);
-        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
-        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE');
-
-        doc.moveDown();
+        doc.moveDown(0.5);
         doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
         doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE.');
 
-        doc.moveDown(2);
+        doc.moveDown(0.5);
         doc.font('Helvetica-Bold').text('4. Aceptación por Silencio del Arrendatario');
         doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.');
 
-        doc.moveDown(2);
-        doc.text('La falta de respuesta se interpretará como consentimiento tácito, dado que la información fue remitida al medio de contacto registrado y el ARRENDATARIO no manifestó oposición en el tiempo establecido.');
-        doc.text('Acepta términos y condiciones https: rentahouse01@hotmail.com-rentahouse@gmail.com');
-
-        doc.moveDown(2);
-        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
-        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE');
-
-        doc.moveDown();
-        doc.font('Helvetica-Bold').text('Aceptación de las Condiciones');
-        doc.font('Helvetica').text('El ARRENDATARIO declara haber leído, comprendido y aceptado esta cláusula como parte integral del contrato de arrendamiento temporal celebrado con ALQUILER RENTA HOUSE.');
-
-        doc.moveDown(2);
-        doc.font('Helvetica-Bold').text('4. Aceptación por Silencio del Arrendatario');
-        doc.font('Helvetica').text('Una vez ALQUILER RENTA HOUSE envíe al ARRENDATARIO el contrato, anexos, inventarios o cualquier información relacionada con el alojamiento, a través de WhatsApp, correo electrónico u otro medio autorizado, y no exista respuesta u objeción dentro de un plazo máximo de veinticuatro (24) horas, se entenderá que el ARRENDATARIO acepta en su totalidad el contenido enviado.');
-
-        doc.moveDown(2);
+        doc.moveDown(0.3);
         doc.text('La falta de respuesta se interpretará como consentimiento tácito, dado que la información fue remitida al medio de contacto registrado y el ARRENDATARIO no manifestó oposición en el tiempo establecido.');
 
-        doc.moveDown(3);
-        doc.font('Helvetica-Bold').fontSize(11).text('METODO DE PAGO');
-        doc.font('Helvetica').fontSize(10).text(data.metodoPago || '');
+        doc.moveDown(1);
+        doc.font('Helvetica-Bold').fontSize(10).text('METODO DE PAGO');
+        doc.font('Helvetica').fontSize(9).text(data.metodoPago || 'TRANSFERENCIA BANCARIA');
         doc.text('Calle 32 # 32 – 64 Local 11 Centro Comercial Riviera Plaza Bucaramanga.');
         doc.font('Helvetica-Bold').text('TRANSFERENCIA O CONSIGNACIÓN');
         doc.text('BANCOLOMBIA CUENTA DE AHORROS # 02046147939');
 
-        // Footers on every page
-        const pageCount = doc.bufferedPageRange().count;
-        for (let i = 0; i < pageCount; i++) {
+        // Footers logic (Clean version)
+        const range = doc.bufferedPageRange();
+        for (let i = range.start; i < range.start + range.count; i++) {
             doc.switchToPage(i);
-            doc.fontSize(8).fillColor(footerColor).text(footerText, 50, 792, { align: 'center' });
+            doc.fontSize(8).fillColor(footerColor).text(footerText, 50, 785, { align: 'center' });
         }
 
         doc.end();
