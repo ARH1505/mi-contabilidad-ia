@@ -392,36 +392,12 @@ app.post('/api/generate-booking-report', async (req, res) => {
             const MARGIN_X = 50;
             doc.font('Helvetica-Bold').fontSize(10);
 
-            // Top Fields (Non-table)
-            doc.text('ARRENDADOR:  ', MARGIN_X, doc.y, { continued: true });
-            doc.font('Helvetica').text('ALQUILER RENTA HOUSE representado por YOJANNA YULIETH SERRANO GOMEZ identificada con cédula de ciudadanía # 1’095.827.048 de Bucaramanga, con matrícula mercantil 681907 ubicados en la CALLE. 32 # 32-64 LOCAL 11 CENTRO COMERCIAL RIVERA PLAZA barrio la Aurora, teléfonos 3165791058 – 3167583928- 6076901312', { align: 'justify' });
-            doc.moveDown(1);
-
-            doc.font('Helvetica-Bold').text('ARRENDATARIO: ', { continued: true });
-            doc.font('Helvetica').text(`${data.nombreReserva || ''} `, { continued: true });
-            doc.font('Helvetica-Bold').text('TIPO Y NUMERO DE ID: ', { continued: true });
-            doc.font('Helvetica').text(`CC. ${data.ccReserva || ''}`);
-            doc.moveDown(0.5);
-
-            doc.font('Helvetica-Bold').text('CORREO: ', { continued: true });
-            doc.font('Helvetica').text(`${data.emailReserva || ''}`, { continued: true });
-            const emailWidth = doc.widthOfString(`CORREO: ${data.emailReserva || ''}`);
-            doc.font('Helvetica-Bold').text('                                                                   TEL: ', { continued: true });
-            doc.font('Helvetica').text(`${data.telReserva || ''}`);
-            doc.moveDown(0.5);
-
-            doc.font('Helvetica-Bold').text('EN CASO DE EMERGENCIA: ', { continued: true });
-            doc.font('Helvetica').text(`${data.emergenciaNombre || ''}`, { continued: true });
-            doc.font('Helvetica-Bold').text('                                            TEL: ', { continued: true });
-            doc.font('Helvetica').text(`${data.emergenciaTel || ''}`);
-            doc.moveDown(1);
-
             // Table Drawing helper
             const tableWidth = 512;
-            const col1Width = 160;
-            const col2Width = 120;
-            const col3Width = 150; // Aumentado para acomodar "TIPO Y NUMERO DE ID:"
-            const col4Width = 82;  // Ajustado para manter el total de 512
+            const col1Width = 140; // Ajustado un poco
+            const col2Width = 140; 
+            const col3Width = 130; // Suficiente para "TIPO Y NUMERO DE ID:"
+            const col4Width = 102; 
             const rowHeight = 25;
 
             const drawRow = (label, value, customHeight = 25) => {
@@ -431,7 +407,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 doc.moveTo(MARGIN_X + col1Width, currentY).lineTo(MARGIN_X + col1Width, currentY + h).stroke();
 
                 doc.font('Helvetica-Bold').fontSize(9).text(label, MARGIN_X + 5, currentY + 5, { width: col1Width - 10 });
-                doc.font('Helvetica').fontSize(10).text(String(value || ''), MARGIN_X + col1Width + 5, currentY + 7, { width: col2Width - 10 });
+                doc.font('Helvetica').fontSize(10).text(String(value || ''), MARGIN_X + col1Width + 5, currentY + 7, { width: tableWidth - col1Width - 10 });
                 
                 doc.y = currentY + h;
             };
@@ -441,26 +417,36 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 const h = customHeight;
                 const startX = MARGIN_X;
 
-                // Draw outer rectangle
                 doc.rect(startX, currentY, tableWidth, h).stroke();
-
-                // Draw vertical lines for 4 columns
                 doc.moveTo(startX + col1Width, currentY).lineTo(startX + col1Width, currentY + h).stroke();
                 doc.moveTo(startX + col1Width + col2Width, currentY).lineTo(startX + col1Width + col2Width, currentY + h).stroke();
                 doc.moveTo(startX + col1Width + col2Width + col3Width, currentY).lineTo(startX + col1Width + col2Width + col3Width, currentY + h).stroke();
 
-                // First label and value
                 doc.font('Helvetica-Bold').fontSize(9).text(label1, startX + 5, currentY + 5, { width: col1Width - 10 });
                 doc.font('Helvetica').fontSize(10).text(String(value1 || ''), startX + col1Width + 5, currentY + 7, { width: col2Width - 10 });
 
-                // Second label and value (aligned)
                 if (label2) {
-                    doc.font('Helvetica-Bold').fontSize(9).text(label2, startX + col1Width + col2Width + 5, currentY + 5, { width: col3Width - 10 });
+                    // ALINEACIÓN PULCRA: Etiquetas de la derecha alineadas a la derecha de su celda
+                    doc.font('Helvetica-Bold').fontSize(9).text(label2, startX + col1Width + col2Width, currentY + 5, { 
+                        width: col3Width - 5, 
+                        align: 'right' 
+                    });
                     doc.font('Helvetica').fontSize(10).text(String(value2 || ''), startX + col1Width + col2Width + col3Width + 5, currentY + 7, { width: col4Width - 10 });
                 }
                 
                 doc.y = currentY + h;
             };
+
+            // Ahora dibujamos TODO en tabla para que se vea pulcro
+            drawRow('ARRENDADOR:', 'ALQUILER RENTA HOUSE representado por YOJANNA YULIETH SERRANO GOMEZ identificada con cédula de ciudadanía # 1’095.827.048 de Bucaramanga, con matrícula mercantil 681907 ubicados en la CALLE. 32 # 32-64 LOCAL 11 CENTRO COMERCIAL RIVERA PLAZA barrio la Aurora, teléfonos 3165791058 – 3167583928- 6076901312', 60);
+            
+            doc.moveDown(0.2);
+            drawRowExtended('ARRENDATARIO:', String(data.nombreReserva).toUpperCase(), 'TIPO Y NUMERO DE ID:', `CC. ${data.ccReserva}`);
+            drawRowExtended('CORREO:', data.email || '', 'TEL:', data.telefono || '');
+            drawRowExtended('EN CASO DE EMERGENCIA:', data.contactoEmergencia || '', 'TEL:', data.telefonoEmergencia || '');
+            
+            doc.moveDown(0.2);
+
 
             drawRow('DIRECCION DE INMUEBLE', data.direccionInmueble);
             drawRow('FECHA DE INGRESO', `${data.entrada || ''}`);
