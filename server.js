@@ -397,7 +397,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
                 doc.moveDown(0.5);
             };
 
-            field('ARRENDADOR:', 'ALQUILER RENTA HOUSE (YOJANNA YULIETH SERRANO GOMEZ - CC 1.095.827.048)');
+            field('ARRENDADOR:', 'ALQUILER RENTA HOUSE representado por YOJANNA YULIETH SERRANO GOMEZ identificada con cédula de ciudadanía # 1’095.827.048 de Bucaramanga, con matrícula mercantil 681907 ubicados en la CALLE. 32 # 32-64 LOCAL 11 CENTRO COMERCIAL RIVERA PLAZA barrio la Aurora, teléfonos 3165791058 – 3167583928- 6076901312');
             field('ARRENDATARIO:', data.nombreReserva);
             field('TIPO Y NUMERO DE ID:', data.ccReserva);
             field('CORREO:', data.emailReserva);
