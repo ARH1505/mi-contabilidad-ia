@@ -643,14 +643,24 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.font('Helvetica-Bold').text(`REFERENCIA: AUTORIZACION PARA LLENAR ESPACIOS EN BLANCOS DEL PAGARE ( No 01 )`, { align: 'left' });
             doc.moveDown(2);
 
-            addJustifiedText(`Yo, ${nombre} mayor de edad, identificado C.C ${cc} como aparece al pie de mi firma, actuando en nombre propio, por medio del presente escrito manifiesto que le faculto a usted, de manera permanente e irrevocable para que, en caso de incumplimiento en el pago oportuno de alguna de las obligaciones que hemos adquirido con usted, derivadas de los negocios comerciales y contractuales bien sean verbales o escritos; sin previo aviso, proceda a llenar los espacios en blanco del pagare No 01, que he suscrito en la fecha a su favor y que se anexa, con el fin de convertir el pagare, en un documento que presta merito ejecutivo y que está sujeto a los parámetros legales del Artículo 622 del Código de Comercio`);
+            // Justified text with inline bolding
+            doc.font('Helvetica').fontSize(11).text('Yo, ', { continued: true, align: 'justify', lineGap: 4 });
+            doc.font('Helvetica-Bold').text(nombre, { continued: true });
+            doc.font('Helvetica').text(' mayor de edad, identificado ', { continued: true });
+            doc.font('Helvetica-Bold').text(`C.C ${cc}`, { continued: true });
+            doc.font('Helvetica').text(' como aparece al pie de mi firma, actuando en nombre propio, por medio del presente escrito manifiesto que le faculto a usted, de manera permanente e irrevocable para que, en caso de incumplimiento en el pago oportuno de alguna de las obligaciones que hemos adquirido con usted, derivadas de los negocios comerciales y contractuales bien sean verbales o escritos; sin previo aviso, proceda a llenar los espacios en blanco del pagare No 01, que he suscrito en la fecha a su favor y que se anexa, con el fin de convertir el pagare, en un documento que presta merito ejecutivo y que está sujeto a los parámetros legales del Artículo 622 del Código de Comercio');
             
             doc.moveDown(1);
             addJustifiedText(`1. El espacio correspondiente a " la suma cierta de" se llenará por una suma igual a la que resulte pendiente de pago de todas las obligaciones contraídas con el acreedor, por concepto de capital, intereses, seguros, cobranza extrajudicial, según la contabilidad del acreedor a la fecha en que sea llenado el pagare.`);
             addJustifiedText(`2. El espacio correspondiente a la fecha en que se debe hacer el pago se llenara con la fecha correspondiente al día en que sea llenado el pagare, fecha que se entiende que es la de su vencimiento.`);
 
             doc.moveDown(2);
-            addJustifiedText(`En constancia de lo anterior firmamos la presente autorización, a los ${day} días del mes ${monthName} del año ${year}`);
+            doc.font('Helvetica').text('En constancia de lo anterior firmamos la presente autorización, a los ', { continued: true, align: 'justify' });
+            doc.font('Helvetica-Bold').text(`${day} días`, { continued: true });
+            doc.font('Helvetica').text(' del mes ', { continued: true });
+            doc.font('Helvetica-Bold').text(monthName, { continued: true });
+            doc.font('Helvetica').text(' del año ', { continued: true });
+            doc.font('Helvetica-Bold').text(String(year));
 
             doc.moveDown(4);
             doc.font('Helvetica-Bold').fontSize(11).text('EL DEUDOR,');
@@ -667,7 +677,11 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.text('PAGARE N 01.', { align: 'center' });
             doc.moveDown(2);
 
-            addJustifiedText(`Yo, ${nombre}, (Deudor), mayor de edad, identificado con C.C ${cc} como aparece al pie de mi firma, actuando en nombre propio, mayor de edad, identificado como aparece al pie de mi firma, por medio del presente escrito manifiesto, lo :`);
+            doc.font('Helvetica').fontSize(11).text('Yo, ', { continued: true, align: 'justify', lineGap: 4 });
+            doc.font('Helvetica-Bold').text(nombre, { continued: true });
+            doc.font('Helvetica').text(', (Deudor), mayor de edad, identificado con ', { continued: true });
+            doc.font('Helvetica-Bold').text(`C.C ${cc}`, { continued: true });
+            doc.font('Helvetica').text(' como aparece al pie de mi firma, actuando en nombre propio, mayor de edad, identificado como aparece al pie de mi firma, por medio del presente escrito manifiesto, lo :');
 
             doc.moveDown(1);
             addJustifiedText(`PRIMERO: Que debo y pagare, incondicional y solidariamente a la orden de ________________________________________ o a la persona natural o jurídica a quien el mencionado acreedor ceda o endose sus derechos sobre este pagare, la suma cierta de _______________________, PESOS MCTE (_________________) pesos moneda legal colombiana.`);
