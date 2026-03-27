@@ -581,13 +581,14 @@ async function fetchIncomeStatement() {
 const bookingForm = document.getElementById('booking-form');
 if (bookingForm) {
     const handlePdfGeneration = async (type) => {
-        const btnId = type === 'summary' ? 'generate-summary-btn' : 'generate-contract-btn';
+        const btnId = type === 'summary' ? 'generate-summary-btn' : (type === 'contract' ? 'generate-contract-btn' : 'generate-pagare-btn');
         const generateBtn = document.getElementById(btnId);
         const originalBtnHtml = generateBtn.innerHTML;
         
         generateBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
         document.getElementById('generate-summary-btn').disabled = true;
         document.getElementById('generate-contract-btn').disabled = true;
+        document.getElementById('generate-pagare-btn').disabled = true;
 
         const formData = {
             type: type, // 'summary' or 'contract'
@@ -629,7 +630,7 @@ if (bookingForm) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            const fileName = type === 'summary' ? 'Informe_Reserva' : 'Contrato_Alquiler';
+            const fileName = type === 'summary' ? 'Informe_Reserva' : (type === 'contract' ? 'Contrato_Alquiler' : 'Pagare_y_Carta');
             a.download = `${fileName}_${formData.nombreReserva.replace(/ /g, '_')}.pdf`;
             document.body.appendChild(a);
             a.click();
@@ -647,11 +648,13 @@ if (bookingForm) {
             generateBtn.innerHTML = originalBtnHtml;
             document.getElementById('generate-summary-btn').disabled = false;
             document.getElementById('generate-contract-btn').disabled = false;
+            document.getElementById('generate-pagare-btn').disabled = false;
         }
     };
 
     document.getElementById('generate-summary-btn').addEventListener('click', () => handlePdfGeneration('summary'));
     document.getElementById('generate-contract-btn').addEventListener('click', () => handlePdfGeneration('contract'));
+    document.getElementById('generate-pagare-btn').addEventListener('click', () => handlePdfGeneration('pagare'));
     
     // Prevent default form submit
     bookingForm.addEventListener('submit', (e) => e.preventDefault());

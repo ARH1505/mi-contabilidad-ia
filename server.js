@@ -608,6 +608,91 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.font('Helvetica-Bold').text(`CC. ${data.ccReserva || ''}`, MARGIN_X, doc.y);
 
             doc.end();
+        } else if (type === 'pagare') {
+            // --- Pagaré y Carta de Instrucciones Logic ---
+            doc.on('pageAdded', () => {
+                addLogo();
+                doc.y = 80;
+            });
+
+            addLogo();
+            doc.y = 80;
+
+            const now = new Date();
+            const day = now.getDate();
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+
+            const nombre = String(data.nombreReserva || '').toUpperCase();
+            const cc = data.ccReserva || '';
+
+            // Helper for justified text with logo on same page
+            const addJustifiedText = (text, options = {}) => {
+                doc.font('Helvetica').fontSize(11).text(text, {
+                    align: 'justify',
+                    lineGap: 4,
+                    ...options
+                });
+            };
+
+            // --- PAGE 1: CARTA DE INSTRUCCIONES ---
+            doc.font('Helvetica').fontSize(11).text('Señor', MARGIN_X, doc.y);
+            doc.text('Ciudad');
+            doc.moveDown(2);
+            doc.font('Helvetica-Bold').text(`REFERENCIA: AUTORIZACION PARA LLENAR ESPACIOS EN BLANCOS DEL PAGARE ( No 01 )`, { align: 'left' });
+            doc.moveDown(2);
+
+            addJustifiedText(`Yo, ${nombre} mayor de edad, identificado C.C ${cc} como aparece al pie de mi firma, actuando en nombre propio, por medio del presente escrito manifiesto que le faculto a usted, de manera permanente e irrevocable para que, en caso de incumplimiento en el pago oportuno de alguna de las obligaciones que hemos adquirido con usted, derivadas de los negocios comerciales y contractuales bien sean verbales o escritos; sin previo aviso, proceda a llenar los espacios en blanco del pagare No 01, que he suscrito en la fecha a su favor y que se anexa, con el fin de convertir el pagare, en un documento que presta merito ejecutivo y que está sujeto a los parámetros legales del Artículo 622 del Código de Comercio`);
+            
+            doc.moveDown(1);
+            addJustifiedText(`1. El espacio correspondiente a " la suma cierta de" se llenará por una suma igual a la que resulte pendiente de pago de todas las obligaciones contraídas con el acreedor, por concepto de capital, intereses, seguros, cobranza extrajudicial, según la contabilidad del acreedor a la fecha en que sea llenado el pagare.`);
+            addJustifiedText(`2. El espacio correspondiente a la fecha en que se debe hacer el pago se llenara con la fecha correspondiente al día en que sea llenado el pagare, fecha que se entiende que es la de su vencimiento.`);
+
+            doc.moveDown(2);
+            addJustifiedText(`En constancia de lo anterior firmamos la presente autorización, a los ${day} días del mes ${monthName} del año ${year}`);
+
+            doc.moveDown(4);
+            doc.font('Helvetica-Bold').text('EL DEUDOR,');
+            doc.moveDown(2);
+            doc.text('_________________________________');
+            doc.text(nombre);
+            doc.text(`CC. ${cc}`);
+
+            // --- PAGE 2: PAGARE ---
+            doc.addPage();
+            // addLogo and doc.y = 80 handled by 'pageAdded' event
+            
+            doc.font('Helvetica-Bold').fontSize(14).text('PAGARE Y CARTA DE INSTRUCCIONES', { align: 'center' });
+            doc.text('PAGARE N 01.', { align: 'center' });
+            doc.moveDown(2);
+
+            addJustifiedText(`Yo, ${nombre}, (Deudor), mayor de edad, identificado con C.C ${cc} como aparece al pie de mi firma, actuando en nombre propio, mayor de edad, identificado como aparece al pie de mi firma, por medio del presente escrito manifiesto, lo :`);
+
+            doc.moveDown(1);
+            addJustifiedText(`PRIMERO: Que debo y pagare, incondicional y solidariamente a la orden de ________________________________________ o a la persona natural o jurídica a quien el mencionado acreedor ceda o endose sus derechos sobre este pagare, la suma cierta de _______________________, PESOS MCTE (_________________) pesos moneda legal colombiana.`);
+
+            doc.moveDown(1);
+            addJustifiedText(`SEGUNDO: Que el pago total de la mencionada obligación se efectuara en un solo contado, el día___ del mes ____ de del año ___ en las dependencias de ____________________________(NOMBRE DE L ACREEDOR)ubicada en la ciudad de ____________________ o en su cuenta bancaria N°________________________ del Banco _____________________________________`);
+
+            doc.moveDown(1);
+            addJustifiedText(`TERCERO: Que en caso de mora pagaré a ___________________________________ o a la persona natural o jurídica a quien el mencionado a creedor ceda o endose sus derechos, intereses de mora a la más alta tasa permitida por la Ley, desde el día siguiente a la fecha de exigibilidad del presente pagare, y hasta cuando su pago total se efectúe.`);
+
+            doc.moveDown(1);
+            addJustifiedText(`CUARTO: Expresamente declaro excusado el protesto del presente pagaré y los requerimientos judiciales o extrajudiciales para la constitución en mora.`);
+
+            doc.moveDown(1);
+            addJustifiedText(`QUINTO: Si se produce al recaudo judicial o extrajudicial de la obligación contenida en este título valor, serán a mi cargo las costas judiciales /o los honorarios causados por tal razón.`);
+
+            doc.moveDown(2);
+            addJustifiedText(`--------------------- días del mes ______________ de del año ____`);
+
+            doc.moveDown(4);
+            doc.text('_________________________________');
+            doc.font('Helvetica-Bold').text(nombre);
+            doc.text(`CC. ${cc}`);
+
+            doc.end();
         }
 
     } catch (error) {
