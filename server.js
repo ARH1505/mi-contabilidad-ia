@@ -653,11 +653,11 @@ app.post('/api/generate-booking-report', async (req, res) => {
             addJustifiedText(`En constancia de lo anterior firmamos la presente autorización, a los ${day} días del mes ${monthName} del año ${year}`);
 
             doc.moveDown(4);
-            doc.font('Helvetica-Bold').text('EL DEUDOR,');
-            doc.moveDown(2);
-            doc.text('_________________________________');
-            doc.text(nombre);
-            doc.text(`CC. ${cc}`);
+            doc.font('Helvetica-Bold').fontSize(11).text('EL DEUDOR,');
+            doc.moveDown(3);
+            doc.font('Helvetica').text('_________________________________');
+            doc.font('Helvetica-Bold').text(nombre);
+            doc.font('Helvetica-Bold').text(`CC. ${cc}`);
 
             // --- PAGE 2: PAGARE ---
             doc.addPage();
@@ -684,13 +684,13 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.moveDown(1);
             addJustifiedText(`QUINTO: Si se produce al recaudo judicial o extrajudicial de la obligación contenida en este título valor, serán a mi cargo las costas judiciales /o los honorarios causados por tal razón.`);
 
-            doc.moveDown(2);
+            doc.moveDown(3);
             addJustifiedText(`--------------------- días del mes ______________ de del año ____`);
 
-            doc.moveDown(4);
-            doc.text('_________________________________');
+            doc.moveDown(5);
+            doc.font('Helvetica').text('_________________________________');
             doc.font('Helvetica-Bold').text(nombre);
-            doc.text(`CC. ${cc}`);
+            doc.font('Helvetica-Bold').text(`CC. ${cc}`);
 
             doc.end();
         }
