@@ -699,7 +699,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
             addJustifiedText(`QUINTO: Si se produce al recaudo judicial o extrajudicial de la obligación contenida en este título valor, serán a mi cargo las costas judiciales /o los honorarios causados por tal razón.`);
 
             doc.moveDown(3);
-            addJustifiedText(`--------------------- días del mes ______________ de del año ____`);
+            addJustifiedText(`En constancia de lo anterior firmamos la presente autorización, a los ____________________ días del mes ______________ de del año ______`);
 
             doc.moveDown(5);
             doc.font('Helvetica').text('_________________________________');
