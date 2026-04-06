@@ -608,6 +608,62 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.font('Helvetica-Bold').text(`CC. ${data.ccReserva || ''}`, MARGIN_X, doc.y);
 
             doc.end();
+        } else if (type === 'auth') {
+            doc.on('pageAdded', () => {
+                addLogo();
+                doc.y = 80;
+            });
+
+            addLogo();
+            doc.y = 80;
+
+            doc.font('Helvetica-Bold').fontSize(14).text('AUTORIZACIÓN PARA EL TRATAMIENTO DE DATOS PERSONALES', { align: 'center' });
+            doc.moveDown(2);
+
+            const nombre = String(data.nombreReserva || '').toUpperCase();
+            const cc = data.ccReserva || '';
+
+            // Justified text with inline bolding
+            doc.font('Helvetica').fontSize(11).text('Yo ', { continued: true, align: 'justify', lineGap: 4 });
+            doc.font('Helvetica-Bold').text(nombre, { continued: true });
+            doc.font('Helvetica').text(', mayor de edad, identificado con cédula de ciudadanía No.', { continued: true });
+            doc.font('Helvetica-Bold').text(cc, { continued: true });
+            doc.font('Helvetica').text(', en adelante “EL TOMADOR”, por medio del presente documento manifiesto que autorizo de manera libre, expresa, voluntaria e informada a la empresa ALQUILER RENTA HOUSE, representada legalmente por Yojanna Yulieth Serrano Gómez, identificada con cédula de ciudadanía No. 1.095.827.048, para que, en cumplimiento de la Ley 1581 de 2012, el Decreto 1377 de 2013 y demás normas concordantes, realice la recolección, almacenamiento, uso, circulación, supresión y tratamiento de los datos personales que he suministrado con ocasión del contrato de arrendamiento temporal de inmueble amoblado.');
+
+            doc.moveDown(1);
+            doc.text('La información recolectada será utilizada única y exclusivamente para los siguientes fines:');
+            doc.moveDown(0.5);
+            
+            const li = [
+                '1. Verificación de identidad y antecedentes del tomador o arrendatario.',
+                '2. Ejecución, cumplimiento y control del contrato de arrendamiento.',
+                '3. Comunicación y envío de información relacionada con el contrato.',
+                '4. Cumplimiento de obligaciones legales, contables y tributarias.',
+                '5. Gestión administrativa y comercial de la empresa ALQUILER RENTA HOUSE.'
+            ];
+            li.forEach(item => {
+                doc.text(item, { align: 'justify', lineGap: 4 });
+            });
+
+            doc.moveDown(1);
+            doc.text('El titular de los datos declara que ha sido informado de sus derechos a conocer, actualizar, rectificar y suprimir los datos personales suministrados, así como a revocar la autorización otorgada, conforme a lo establecido en la legislación vigente, a través de solicitud escrita dirigida al correo electrónico: alquilerentahouse@gmail.com o a la dirección física: Calle 32 #32-64 centro comercial Riviera plaza local 11.', { align: 'justify', lineGap: 4 });
+
+            doc.moveDown(2);
+            
+            const now = new Date();
+            const day = now.getDate();
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+
+            doc.text(`En constancia se firma en la ciudad de Bucaramanga, a los ${day} días de ${monthName} de ${year}`);
+
+            doc.moveDown(5);
+            doc.font('Helvetica').text('_________________________________');
+            doc.font('Helvetica-Bold').text(nombre);
+            doc.font('Helvetica-Bold').text(`C.C. No. ${cc}`);
+
+            doc.end();
         } else if (type === 'pagare') {
             // --- Pagaré y Carta de Instrucciones Logic ---
             doc.on('pageAdded', () => {

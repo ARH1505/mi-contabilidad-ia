@@ -581,14 +581,16 @@ async function fetchIncomeStatement() {
 const bookingForm = document.getElementById('booking-form');
 if (bookingForm) {
     const handlePdfGeneration = async (type) => {
-        const btnId = type === 'summary' ? 'generate-summary-btn' : (type === 'contract' ? 'generate-contract-btn' : 'generate-pagare-btn');
+        const btnId = type === 'summary' ? 'generate-summary-btn' : (type === 'contract' ? 'generate-contract-btn' : (type === 'pagare' ? 'generate-pagare-btn' : 'generate-auth-btn'));
         const generateBtn = document.getElementById(btnId);
+        if (!generateBtn) return;
         const originalBtnHtml = generateBtn.innerHTML;
         
         generateBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
         document.getElementById('generate-summary-btn').disabled = true;
         document.getElementById('generate-contract-btn').disabled = true;
         document.getElementById('generate-pagare-btn').disabled = true;
+        document.getElementById('generate-auth-btn').disabled = true;
 
         const formData = {
             type: type, // 'summary' or 'contract'
@@ -630,7 +632,7 @@ if (bookingForm) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            const fileName = type === 'summary' ? 'Informe_Reserva' : (type === 'contract' ? 'Contrato_Alquiler' : 'Pagare_y_Carta');
+            const fileName = type === 'summary' ? 'Informe_Reserva' : (type === 'contract' ? 'Contrato_Alquiler' : (type === 'pagare' ? 'Pagare_y_Carta' : 'Autorizacion_Datos'));
             a.download = `${fileName}_${formData.nombreReserva.replace(/ /g, '_')}.pdf`;
             document.body.appendChild(a);
             a.click();
@@ -649,12 +651,14 @@ if (bookingForm) {
             document.getElementById('generate-summary-btn').disabled = false;
             document.getElementById('generate-contract-btn').disabled = false;
             document.getElementById('generate-pagare-btn').disabled = false;
+            document.getElementById('generate-auth-btn').disabled = false;
         }
     };
 
     document.getElementById('generate-summary-btn').addEventListener('click', () => handlePdfGeneration('summary'));
     document.getElementById('generate-contract-btn').addEventListener('click', () => handlePdfGeneration('contract'));
     document.getElementById('generate-pagare-btn').addEventListener('click', () => handlePdfGeneration('pagare'));
+    document.getElementById('generate-auth-btn').addEventListener('click', () => handlePdfGeneration('auth'));
     
     // Prevent default form submit
     bookingForm.addEventListener('submit', (e) => e.preventDefault());
