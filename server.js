@@ -469,16 +469,16 @@ app.post('/api/generate-booking-report', async (req, res) => {
             drawRow('VALOR TOTAL CANCELADO', format(totalVal));
             drawRow('NUMERO DE PERSONAS', data.personas);
 
-            doc.moveDown(2);
-            doc.font('Helvetica-Bold').fontSize(11).text('CONDICIONES GENERALES', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(1);
+            doc.font('Helvetica-Bold').fontSize(11).text('CONDICIONES GENERALES', MARGIN_X, doc.y, { align: 'left' });
+            doc.moveDown(0.5);
 
             const legalText = (title, body) => {
-                doc.moveDown(2.5); 
+                doc.moveDown(1.5); 
                 
                 if (title) {
                     doc.font('Helvetica-Bold').fontSize(10).text(title, MARGIN_X, doc.y, { align: 'left' });
-                    doc.moveDown(1.2); 
+                    doc.moveDown(0.8); 
                 }
                 
                 doc.x = MARGIN_X;
