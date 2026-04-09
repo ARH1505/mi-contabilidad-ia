@@ -575,17 +575,43 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
             legalText('PARAGRAFO. -', `En caso de incumplimiento del pago del canon u otros valores, u otras causales de restitución, el HUESPED acepta y es de su conocimiento que el día acordado como la fecha límite de pago si no es recibido el canon acordado, SE APLICARA ALLANAMIENTO Y EL DESALOJO INMEDIATO, se enviará una autorización de no ingreso al apartamento, ni al conjunto, al cuerpo de vigilancia y administración, y acepta que esta autorización no generará ningún tipo de violación o abuso en su contra, y que acepta este es un mecanismo para garantizar el cumplimiento, y tampoco genera ningún cobro por indemnizaciones o perjuicio alguno a su favor, reconoce que esto no representa ningún secuestro ni retención, y acepta las consecuencias derivadas del caso. En caso de mora, el ARRENDATARIO autoriza al ARRENDADOR para que realice en su calidad de acreedor, el reporte negativo a las diferentes centrales riesgo y/o entidades relacionadas, medios de comunicación, redes sociales, policivas, civiles, o comerciales, e inicie procesos jurídicos. Y así mismo autoriza al ARRENDADOR para llenar los espacios del pagaré en blanco adjunto al presente contrato y la retención del bono de respaldo. Así como también autoriza al ARRENDADOR a ingresar a tomar posesión inmediata del inmueble sin requerimiento judicial, ni notificación alguna, solo con la presentación del presente contrato ante la entidad policial, como prueba del compromiso y la obligación contraída como ARRENDATARIO, comprometiéndose a desalojar- voluntaria e inmediatamente el inmueble, manteniendo las obligaciones pactadas vigentes hasta encontrarse a paz y salvo por todo concepto a favor del ARRENDADOR`);
 
-            legalText('DÉCIMA. -', `Para efectos de notificaciones el ARRENDADOR recibirá notificaciones en la CALLE 32 32-64 CENTRO COMERCIAL. RIVERA PLAZA LOCAL 11`);
+            legalText('DÉCIMA. - CLÁUSULA DE ABANDONO Y RECUPERACIÓN DEL INMUEBLE:', `Para todos los efectos del presente contrato de hospedaje y/o arrendamiento de corta estancia, se entenderá que EL ARRENDATARIO ha abandonado el inmueble, facultando a EL ARRENDADOR para recuperar su tenencia de manera inmediata, cuando ocurra cualquiera de las siguientes situaciones:
+1. Mora en servicios públicos (Excedentes): Cuando EL ARRENDATARIO incurra en el no pago de los excedentes de servicios públicos por un período igual o superior a un (1) mes, o cuando se evidencie riesgo de suspensión de los mismos por la abstinencia del pago de excedentes, los cuales se evidencian, entienden y aceptan en el PARRAFO 4 del presente contrato.
+2. Mora en el pago del canon: Cuando EL ARRENDATARIO no realice el pago del canon pactado dentro de los dos (2) días calendario siguientes a la fecha acordada, sin necesidad de requerimiento previo.
+3. Inocupación del inmueble: Cuando el inmueble permanezca sin ocupación efectiva por parte de EL ARRENDATARIO por un período continuo de dos (2) días calendario, sin notificación previa y escrita al ARRENDADOR.
+4. Desatención o abandono material: Cuando se evidencie la falta de uso normal del inmueble, descuido grave, o inexistencia de pertenencias personales que indiquen permanencia.
 
-            legalText('UNDÉCIMA. - ESPACIOS EN BLANCO:', `El ARRENDATARIO faculta expresamente al ARRENDADOR para llenar en este documento los espacios en blanco`);
+VERIFICACIÓN DEL ABANDONO:
+En caso de configurarse alguna de las causales anteriores, EL ARRENDADOR podrá ingresar al inmueble con el fin de verificar la situación, dejando constancia mediante:
+* Registro fotográfico y de video del estado del inmueble.
+* Presencia de mínimo un (1) testigo, quien podrá ser un particular o un miembro de la Policía Nacional de Colombia.
+* Elaboración de acta detallada del estado del inmueble y de los bienes hallados.
 
-            legalText('UNDÉCIMA PRIMERA. - AUTORIZACIONES:', `El ARRENDATARIO autoriza de manera irrevocable al ARRENDADOR o a quien represente sus derechos u ostente en el futuro la calidad de acreedor, para que en el evento en que se constituya en mora en el pago de sumas de dinero generadas por la ejecución de este contrato o cualquier otro concepto que sea a su cargo, durante el término de duración del contrato, se incorporen sus nombre, apellidos, razón social y documentos de identificación de los archivos de deudores morosos o con referencias negativas que lleven CIAN, DATACREDITO, FIANZACREDITO INMOBILIARIO DE SANTANDER S.A., LONJA DE PROPIEDAD RAIZ DE SANTANDER, o cualquier otra entidad encargada del manejo de datos comerciales, personales o económicos, El ARRENDATARIO exonera de toda responsabilidad por la inclusión de tales datos al ARRENDADOR como a la entidad que produzca el correspondiente archivo. El ARRENDATARIO manifiesta que todos los datos aquí consignados son ciertos, que la información suministrada al ARRENDADOR es veraz y verificable, y autoriza su verificación ante cualquier persona natural, jurídica o entidad pública, sin limitación alguna, mientras subsistan las obligaciones adquiridas en el presente contrato.`);
+En cualquiera de estos eventos, EL ARRENDADOR queda expresamente facultada para:
+* Ingresar al inmueble sin autorización previa del ARRENDATARIO.
+* Cambiar guardas, chapas o sistemas de acceso.
+* Elaborar inventario de los bienes encontrados, mediante acta.
+* Retirar, almacenar o disponer de los bienes abandonados, sin responsabilidad alguna.
+* Dar por terminado el contrato de forma inmediata.
+* Reasignar el inmueble a un nuevo huésped.`);
 
-            legalText('UNDÉCIMA SEGUNDA: CONSTANCIA DE RECIBIDO DE ESTE CONTRATO:', `se deja constancia al firmar este contrato que todas las partes reciben copia de este.`);
+            legalText('PARÁGRAFO PRIMERO:', `EL ARRENDATARIO renuncia expresamente a cualquier reclamación por perturbación de la tenencia, en virtud de la naturaleza temporal del presente contrato.`);
 
-            legalText('UNDÉCIMA TERCERA:', `Nos reservamos el derecho de admisión. Solo es permitido ingresar a la propiedad grupos familiares o empresariales. Este servicio no se presta para grupos estudiantiles y menores de edad. La empresa no se hace responsable del impedimento de ingreso a la propiedad en caso de ser falsa la información suministrada.`);
+            legalText('PARÁGRAFO SEGUNDO:', `La presente cláusula se pacta conforme al principio de autonomía de la voluntad privada y la naturaleza comercial y temporal del servicio prestado.`);
 
-            legalText('UNDÉCIMA CUARTA:', `El ARRENDATARIO autoriza de manera irrevocable al ARRENDADOR o a quien represente sus derechos para que los datos de identificación suministrados en el presente contrato sean entregados a las autoridades municipales, departamentales, de policía y judiciales que para efectos de control, supervisión y seguridad realicen al establecimiento de comercio.`);
+            legalText('PARÁGRAFO TERCERO:', `En todo caso, EL ARRENDADOR podrá ejercer las acciones legales necesarias para el cobro de valores adeudados y perjuicios ocasionados.`);
+
+            legalText('UNDÉCIMA. -', `Para efectos de notificaciones el ARRENDADOR recibirá notificaciones en la CALLE 32 32-64 CENTRO COMERCIAL. RIVERA PLAZA LOCAL 11`);
+
+            legalText('DUODÉCIMA. - ESPACIOS EN BLANCO:', `El ARRENDATARIO faculta expresamente al ARRENDADOR para llenar en este documento los espacios en blanco`);
+
+            legalText('DUODÉCIMA PRIMERA. - AUTORIZACIONES:', `El ARRENDATARIO autoriza de manera irrevocable al ARRENDADOR o a quien represente sus derechos u ostente en el futuro la calidad de acreedor, para que en el evento en que se constituya en mora en el pago de sumas de dinero generadas por la ejecución de este contrato o cualquier otro concepto que sea a su cargo, durante el término de duración del contrato, se incorporen sus nombre, apellidos, razón social y documentos de identificación de los archivos de deudores morosos o con referencias negativas que lleven CIAN, DATACREDITO, FIANZACREDITO INMOBILIARIO DE SANTANDER S.A., LONJA DE PROPIEDAD RAIZ DE SANTANDER, o cualquier otra entidad encargada del manejo de datos comerciales, personales o económicos, El ARRENDATARIO exonera de toda responsabilidad por la inclusión de tales datos al ARRENDADOR como a la entidad que produzca el correspondiente archivo. El ARRENDATARIO manifiesta que todos los datos aquí consignados son ciertos, que la información suministrada al ARRENDADOR es veraz y verificable, y autoriza su verificación ante cualquier persona natural, jurídica o entidad pública, sin limitación alguna, mientras subsistan las obligaciones adquiridas en el presente contrato.`);
+
+            legalText('DUODÉCIMA SEGUNDA: CONSTANCIA DE RECIBIDO DE ESTE CONTRATO:', `se deja constancia al firmar este contrato que todas las partes reciben copia de este.`);
+
+            legalText('DUODÉCIMA TERCERA:', `Nos reservamos el derecho de admisión. Solo es permitido ingresar a la propiedad grupos familiares o empresariales. Este servicio no se presta para grupos estudiantiles y menores de edad. La empresa no se hace responsable del impedimento de ingreso a la propiedad en caso de ser falsa la información suministrada.`);
+
+            legalText('DUODÉCIMA CUARTA:', `El ARRENDATARIO autoriza de manera irrevocable al ARRENDADOR o a quien represente sus derechos para que los datos de identificación suministrados en el presente contrato sean entregados a las autoridades municipales, departamentales, de policía y judiciales que para efectos de control, supervisión y seguridad realicen al establecimiento de comercio.`);
 
             // --- Sección de Firmas (Mantener juntas) ---
             const signatureHeight = 180;
