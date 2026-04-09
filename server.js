@@ -474,51 +474,63 @@ app.post('/api/generate-booking-report', async (req, res) => {
             doc.moveDown(1);
 
             const legalText = (title, body) => {
-                // Espacio extra antes de empezar cada sección para asegurar que el texto anterior NO esté encima
                 doc.moveDown(2.5); 
                 
                 if (title) {
                     doc.font('Helvetica-Bold').fontSize(10).text(title, MARGIN_X, doc.y, { align: 'left' });
-                    doc.moveDown(1.2); // Más separación para que se vea pulcro y organizado
+                    doc.moveDown(1.2); 
                 }
                 
                 doc.x = MARGIN_X;
-                const words = body.split(/(\s+)/);
-                const chunks = [];
-                let currentChunk = "";
-                let currentIsUpper = null;
-
-                words.forEach((word) => {
-                    const clean = word.trim();
-                    if (!clean) {
-                        currentChunk += word;
+                // Dividimos en párrafos reales para evitar el bug de solapamiento con saltos de línea y 'continued:true'
+                const paragraphs = body.split('\n');
+                
+                paragraphs.forEach((p) => {
+                    const cleanP = p.trim();
+                    if (!cleanP) {
+                        doc.moveDown(0.4);
                         return;
                     }
-                    const isUpper = clean.length >= 2 && /^[^a-z]+$/.test(clean) && /[A-ZÁÉÍÓÚÑ]/.test(clean);
-                    
-                    if (currentIsUpper === null) {
-                        currentIsUpper = isUpper;
-                        currentChunk = word;
-                    } else if (currentIsUpper === isUpper) {
-                        currentChunk += word;
-                    } else {
-                        chunks.push({ text: currentChunk, isUpper: currentIsUpper });
-                        currentIsUpper = isUpper;
-                        currentChunk = word;
-                    }
-                });
-                if (currentChunk) {
-                    chunks.push({ text: currentChunk, isUpper: currentIsUpper });
-                }
 
-                chunks.forEach((chunk, index) => {
-                    const isLast = index === chunks.length - 1;
-                    doc.font(chunk.isUpper ? 'Helvetica-Bold' : 'Helvetica').fontSize(10);
-                    doc.text(chunk.text, { 
-                        continued: !isLast, 
-                        align: 'justify',
-                        lineGap: 2
+                    const words = cleanP.split(/(\s+)/);
+                    const chunks = [];
+                    let currentChunk = "";
+                    let currentIsUpper = null;
+
+                    words.forEach((word) => {
+                        const clean = word.trim();
+                        if (!clean) {
+                            currentChunk += word;
+                            return;
+                        }
+                        const isUpper = clean.length >= 2 && /^[^a-z]+$/.test(clean) && /[A-ZÁÉÍÓÚÑ]/.test(clean);
+                        
+                        if (currentIsUpper === null) {
+                            currentIsUpper = isUpper;
+                            currentChunk = word;
+                        } else if (currentIsUpper === isUpper) {
+                            currentChunk += word;
+                        } else {
+                            chunks.push({ text: currentChunk, isUpper: currentIsUpper });
+                            currentIsUpper = isUpper;
+                            currentChunk = word;
+                        }
                     });
+                    if (currentChunk) {
+                        chunks.push({ text: currentChunk, isUpper: currentIsUpper });
+                    }
+
+                    chunks.forEach((chunk, index) => {
+                        const isLast = index === chunks.length - 1;
+                        doc.font(chunk.isUpper ? 'Helvetica-Bold' : 'Helvetica').fontSize(10);
+                        doc.text(chunk.text, { 
+                            continued: !isLast, 
+                            align: 'justify',
+                            lineGap: 2
+                        });
+                    });
+                    // Salto de línea después de cada párrafo procesado
+                    doc.moveDown(0.8);
                 });
                 doc.moveDown(1);
             };
@@ -576,6 +588,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
             legalText('PARAGRAFO. -', `En caso de incumplimiento del pago del canon u otros valores, u otras causales de restitución, el HUESPED acepta y es de su conocimiento que el día acordado como la fecha límite de pago si no es recibido el canon acordado, SE APLICARA ALLANAMIENTO Y EL DESALOJO INMEDIATO, se enviará una autorización de no ingreso al apartamento, ni al conjunto, al cuerpo de vigilancia y administración, y acepta que esta autorización no generará ningún tipo de violación o abuso en su contra, y que acepta este es un mecanismo para garantizar el cumplimiento, y tampoco genera ningún cobro por indemnizaciones o perjuicio alguno a su favor, reconoce que esto no representa ningún secuestro ni retención, y acepta las consecuencias derivadas del caso. En caso de mora, el ARRENDATARIO autoriza al ARRENDADOR para que realice en su calidad de acreedor, el reporte negativo a las diferentes centrales riesgo y/o entidades relacionadas, medios de comunicación, redes sociales, policivas, civiles, o comerciales, e inicie procesos jurídicos. Y así mismo autoriza al ARRENDADOR para llenar los espacios del pagaré en blanco adjunto al presente contrato y la retención del bono de respaldo. Así como también autoriza al ARRENDADOR a ingresar a tomar posesión inmediata del inmueble sin requerimiento judicial, ni notificación alguna, solo con la presentación del presente contrato ante la entidad policial, como prueba del compromiso y la obligación contraída como ARRENDATARIO, comprometiéndose a desalojar- voluntaria e inmediatamente el inmueble, manteniendo las obligaciones pactadas vigentes hasta encontrarse a paz y salvo por todo concepto a favor del ARRENDADOR`);
 
             legalText('DÉCIMA. - CLÁUSULA DE ABANDONO Y RECUPERACIÓN DEL INMUEBLE:', `Para todos los efectos del presente contrato de hospedaje y/o arrendamiento de corta estancia, se entenderá que EL ARRENDATARIO ha abandonado el inmueble, facultando a EL ARRENDADOR para recuperar su tenencia de manera inmediata, cuando ocurra cualquiera de las siguientes situaciones:
+
 1. Mora en servicios públicos (Excedentes): Cuando EL ARRENDATARIO incurra en el no pago de los excedentes de servicios públicos por un período igual o superior a un (1) mes, o cuando se evidencie riesgo de suspensión de los mismos por la abstinencia del pago de excedentes, los cuales se evidencian, entienden y aceptan en el PARRAFO 4 del presente contrato.
 2. Mora en el pago del canon: Cuando EL ARRENDATARIO no realice el pago del canon pactado dentro de los dos (2) días calendario siguientes a la fecha acordada, sin necesidad de requerimiento previo.
 3. Inocupación del inmueble: Cuando el inmueble permanezca sin ocupación efectiva por parte de EL ARRENDATARIO por un período continuo de dos (2) días calendario, sin notificación previa y escrita al ARRENDADOR.
