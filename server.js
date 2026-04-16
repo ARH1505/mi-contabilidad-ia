@@ -1030,12 +1030,6 @@ app.post('/api/generate-nomina', async (req, res) => {
     }
 });
 
-    } catch (err) {
-        console.error('ERROR /api/generate-nomina:', err);
-        if (!res.headersSent) res.status(500).json({ error: err.message });
-    }
-});
-
 // ─── Employees: GET ──────────────────────────────────────────────────────────
 app.get('/api/employees', (req, res) => {
     db.all(`SELECT * FROM employees ORDER BY nombre ASC`, [], (err, rows) => {
