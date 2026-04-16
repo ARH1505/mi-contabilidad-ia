@@ -878,7 +878,7 @@ function generateNominaPdf(d, res) {
     }
 
     const ML  = 30,  PW  = 555,  MID = ML + PW / 2;
-    const RED = '#c0392b', BLACK = '#000000', LGRAY = '#dddddd';
+    const PURPLE = '#5e17eb', BLACK = '#000000', LGRAY = '#dddddd';
     const FS_SMALL = 8, FS_HEADER = 10, FS_LABEL_LONG = 8;
 
     const cell = (font, size, color, text, x, y, w, align = 'left') =>
@@ -888,8 +888,8 @@ function generateNominaPdf(d, res) {
     // ═══ HEADER BOX ══════════════════════════════════════════════════════
     // Shifted down (hbY = 110) to avoid overlap with a large logo
     const hbY = 110, hbH = 95; 
-    doc.rect(ML, hbY, PW, hbH).lineWidth(1.5).strokeColor(RED).stroke();
-    doc.moveTo(MID, hbY).lineTo(MID, hbY + hbH).strokeColor(RED).lineWidth(1).stroke();
+    doc.rect(ML, hbY, PW, hbH).lineWidth(1.5).strokeColor(PURPLE).stroke();
+    doc.moveTo(MID, hbY).lineTo(MID, hbY + hbH).strokeColor(PURPLE).lineWidth(1).stroke();
 
     const lLabelX = ML + 6, lLabelW = 140;
     const lValX   = lLabelX + lLabelW;
@@ -948,11 +948,11 @@ function generateNominaPdf(d, res) {
     const rowH = 13;
     let rowY = shY + shH;
 
-    const drawRow = (sx, concept, qty, val, isRed = false) => {
+    const drawRow = (sx, concept, qty, val, isPurple = false) => {
         doc.rect(sx,                     rowY, C_CONCEPT, rowH).lineWidth(0.4).strokeColor(LGRAY).stroke();
         doc.rect(sx + C_CONCEPT,         rowY, C_QTY,     rowH).strokeColor(LGRAY).stroke();
         doc.rect(sx + C_CONCEPT + C_QTY, rowY, C_VAL,     rowH).strokeColor(LGRAY).stroke();
-        const cc = isRed ? RED : BLACK;
+        const cc = isPurple ? PURPLE : BLACK;
         cell('Helvetica', FS_SMALL, cc,    concept || '',                sx + 2,                    rowY + 3, C_CONCEPT - 4);
         cell('Helvetica', FS_SMALL, BLACK, qty != null ? String(qty) : '', sx + C_CONCEPT + 2,      rowY + 3, C_QTY - 4, 'right');
         cell('Helvetica', FS_SMALL, BLACK, val != null ? fmt(val) : '',    sx + C_CONCEPT + C_QTY + 2, rowY + 3, C_VAL - 4, 'right');
