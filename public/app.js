@@ -32,7 +32,10 @@ navLinks.forEach(link => {
         if (targetId === 'ledger-view') fetchLedger();
         if (targetId === 'puc-view') fetchPUC();
         if (targetId === 'results-view') fetchIncomeStatement();
-        if (targetId === 'nomina-view') fetchNominaHistory();
+        if (targetId === 'nomina-view') {
+            fetchNominaHistory();
+            fetchEmployees(); // Load datalist
+        }
     });
 });
 
@@ -666,6 +669,66 @@ if (bookingForm) {
     bookingForm.addEventListener('submit', (e) => e.preventDefault());
 }
 
+// --- Employee Management ---
+let employeesList = [];
+
+async function fetchEmployees() {
+    try {
+        const res = await fetch('/api/employees');
+        const data = await res.json();
+        employeesList = data;
+        const datalist = document.getElementById('employee-list');
+        if (datalist) {
+            datalist.innerHTML = data.map(emp => `<option value="${emp.cedula}">${emp.nombre}</option>`).join('');
+        }
+    } catch (e) {
+        console.error('Error fetching employees:', e);
+    }
+}
+
+window.openEmployeeModal = () => {
+    document.getElementById('modal-employee').style.display = 'flex';
+};
+
+window.closeEmployeeModal = () => {
+    document.getElementById('modal-employee').style.display = 'none';
+    document.getElementById('new-emp-cedula').value = '';
+    document.getElementById('new-emp-nombre').value = '';
+};
+
+window.saveEmployee = async () => {
+    const cedula = document.getElementById('new-emp-cedula').value.trim();
+    const nombre = document.getElementById('new-emp-nombre').value.trim();
+    if (!cedula || !nombre) return showToast('Cédula y nombre son obligatorios', true);
+
+    try {
+        const res = await fetch('/api/employees', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cedula, nombre })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Empleado guardado correctamente');
+            closeEmployeeModal();
+            fetchEmployees();
+        } else {
+            showToast(data.error || 'Error al guardar empleado', true);
+        }
+    } catch (e) {
+        showToast('Error de conexión', true);
+    }
+};
+
+// Auto-fill logic when selecting from datalist
+document.getElementById('nomina-cedula')?.addEventListener('input', (e) => {
+    const val = e.target.value;
+    const emp = employeesList.find(emp => emp.cedula === val);
+    if (emp) {
+        document.getElementById('nom-nombre').value = emp.nombre;
+    }
+});
+
 // --- Nómina Logic ---
 const nominaForm = document.getElementById('nomina-form');
 if (nominaForm) {
@@ -692,10 +755,10 @@ if (nominaForm) {
         }
 
         const formData = {
-            nit: document.getElementById('nom-nit').value,
+            nit: document.getElementById('nomina-nit').value || '64.513.678',
             liquidacionNro: document.getElementById('nom-liquidacion-nro').value,
             nro: document.getElementById('nom-nro').value,
-            cedula: document.getElementById('nom-cedula').value,
+            cedula: document.getElementById('nomina-cedula').value,
             nombre: document.getElementById('nom-nombre').value,
             sueldo: parseFloat(document.getElementById('nom-sueldo').value) || 0,
             auxilioTransporte: parseFloat(document.getElementById('nom-auxilio').value) || 0,

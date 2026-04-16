@@ -844,6 +844,11 @@ function generateNominaPdf(d, res) {
     res.setHeader('Content-Disposition', `attachment; filename=Nomina_${(d.nombre || 'report').replace(/ /g, '_')}.pdf`);
     doc.pipe(res);
 
+    const logoPath = path.join(__dirname, 'Logotipo color.png');
+    if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 35, 35, { width: 100 });
+    }
+
     const ML  = 30,  PW  = 555,  MID = ML + PW / 2;
     const RED = '#c0392b', BLACK = '#000000', LGRAY = '#dddddd';
     const FS_SMALL = 8, FS_HEADER = 10, FS_LABEL_LONG = 8;
@@ -853,7 +858,7 @@ function generateNominaPdf(d, res) {
            .text(String(text || ''), x, y, { width: w, align, lineBreak: false });
 
     // ═══ HEADER BOX ══════════════════════════════════════════════════════
-    const hbY = 30, hbH = 95;
+    const hbY = 30, hbH = 135; // Increased height from 95 to 135
     doc.rect(ML, hbY, PW, hbH).lineWidth(1.5).strokeColor(RED).stroke();
     doc.moveTo(MID, hbY).lineTo(MID, hbY + hbH).strokeColor(RED).lineWidth(1).stroke();
 
@@ -861,7 +866,7 @@ function generateNominaPdf(d, res) {
     const lValX   = lLabelX + lLabelW;
     const lValW   = MID - lValX - 6;
     const lh = 17;
-    let ly = hbY + 10;
+    let ly = hbY + 55; // Shifted down from hbY + 10 to hbY + 55
 
     const lRow = (label, val, smallLabel = false) => {
         const lFont = smallLabel ? FS_LABEL_LONG : FS_HEADER;
@@ -878,7 +883,7 @@ function generateNominaPdf(d, res) {
     const rLabelX = MID + 6, rLabelW = 62;
     const rValX   = rLabelX + rLabelW;
     const rValW   = ML + PW - rValX - 6;
-    let ry = hbY + 10;
+    let ry = hbY + 55; // Shifted down from hbY + 10 to hbY + 55
 
     const rRow = (label, val) => {
         cell('Helvetica-Bold', FS_HEADER, BLACK, label, rLabelX, ry, rLabelW);
@@ -1141,6 +1146,27 @@ app.post('/api/generate-nomina', async (req, res) => {
         console.error('ERROR /api/generate-nomina:', err);
         if (!res.headersSent) res.status(500).json({ error: err.message });
     }
+});
+
+// ─── Employees: GET ──────────────────────────────────────────────────────────
+app.get('/api/employees', (req, res) => {
+    db.all(`SELECT * FROM employees ORDER BY nombre ASC`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// ─── Employees: POST ─────────────────────────────────────────────────────────
+app.post('/api/employees', (req, res) => {
+    const { cedula, nombre } = req.body;
+    if (!cedula || !nombre) return res.status(400).json({ error: 'Cédula y nombre son obligatorios.' });
+    db.run(`INSERT INTO employees (cedula, nombre) VALUES (?, ?)`, [cedula, nombre], function(err) {
+        if (err) {
+            if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'La cédula ya existe.' });
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ id: this.lastID, success: true });
+    });
 });
 
 // ─── Nómina History: GET ──────────────────────────────────────────────────────

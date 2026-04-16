@@ -145,7 +145,23 @@ function initDb() {
             neto REAL
         )`);
 
-        console.log("PUC accounts synchronized.");
+        // Create employees table
+        db.run(`CREATE TABLE IF NOT EXISTS employees (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cedula TEXT UNIQUE NOT NULL,
+            nombre TEXT NOT NULL
+        )`);
+
+        // Seed initial employees
+        const empStmt = db.prepare("INSERT OR IGNORE INTO employees (cedula, nombre) VALUES (?, ?)");
+        const initialEmployees = [
+            ['1.005.105.842', 'Juan David Duarte Alvarez'],
+            ['1.005.327.837', 'Juan Sebastian Avila Vergel']
+        ];
+        initialEmployees.forEach(emp => empStmt.run(emp));
+        empStmt.finalize();
+
+        console.log("PUC accounts and employees synchronized.");
     });
 }
 

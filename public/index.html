@@ -250,9 +250,11 @@
 
                 <!-- View: Nómina -->
                 <div id="nomina-view" class="view">
-                    <div class="view-header docs-header">
-                        <h2>Liquidación de Nómina Quincenal</h2>
-                        <small>Completa los datos del empleado y genera el comprobante de nómina en PDF.</small>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h2 style="margin:0;"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidación de Nómina</h2>
+                        <button id="btn-add-employee" class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="openEmployeeModal()">
+                            <i class="fa-solid fa-user-plus"></i> Agregar Empleado
+                        </button>
                     </div>
 
                     <div class="glass-form-container">
@@ -261,8 +263,11 @@
                             <h3 style="margin-bottom:12px; font-size:14px; color:var(--accent); border-bottom:1px solid var(--glass-border); padding-bottom:8px;"><i class="fa-solid fa-building"></i> Datos de la Empresa</h3>
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label>NIT de la Empresa</label>
-                                    <input type="text" id="nom-nit" placeholder="Ej: 80.000.000" required>
+                                    <label>NIT Empresa</label>
+                                    <input type="text" id="nomina-nit" placeholder="64.513.678" list="nit-list">
+                                    <datalist id="nit-list">
+                                        <option value="64.513.678">
+                                    </datalist>
                                 </div>
                                 <div class="form-group">
                                     <label>Liquidación Nro.</label>
@@ -289,8 +294,9 @@
                             <h3 style="margin:16px 0 12px; font-size:14px; color:var(--accent); border-bottom:1px solid var(--glass-border); padding-bottom:8px;"><i class="fa-solid fa-user"></i> Datos del Empleado</h3>
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label>Cédula del Empleado</label>
-                                    <input type="text" id="nom-cedula" placeholder="Ej: 475.260" required>
+                                    <label>Cédula Empleado</label>
+                                    <input type="text" id="nomina-cedula" placeholder="Buscar cédula..." list="employee-list">
+                                    <datalist id="employee-list"></datalist>
                                 </div>
                                 <div class="form-group">
                                     <label>Nombre del Empleado</label>
@@ -447,6 +453,30 @@
                     <button class="btn-secondary" style="width:auto;" onclick="closeEditModal()">Cancelar</button>
                     <button id="save-edit-btn" class="btn-primary" style="padding:10px 20px;" onclick="saveEditTx()">Guardar Cambios</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Empleado -->
+    <div id="modal-employee" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-user-plus"></i> Nuevo Empleado</h2>
+                <button class="btn-icon" onclick="closeEmployeeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label>Cédula</label>
+                    <input type="text" id="new-emp-cedula" placeholder="Ej: 1.005.105.842">
+                </div>
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="new-emp-nombre" placeholder="Ej: Juan Pérez">
+                </div>
+            </div>
+            <div class="modal-footer" style="padding-top:15px; display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-secondary" style="width:auto;" onclick="closeEmployeeModal()">Cancelar</button>
+                <button class="btn-primary" style="width:auto;" onclick="saveEmployee()">Guardar Empleado</button>
             </div>
         </div>
     </div>
