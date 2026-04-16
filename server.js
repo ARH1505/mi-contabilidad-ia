@@ -844,32 +844,30 @@ function generateNominaPdf(d, res) {
     res.setHeader('Content-Disposition', `attachment; filename=Nomina_${(d.nombre || 'report').replace(/ /g, '_')}.pdf`);
     doc.pipe(res);
 
-    // DEBUG: List files to help find the logo in Railway
-    try {
-        const files = fs.readdirSync(__dirname);
-        console.log(`[PDF] Files in __dirname (${__dirname}):`, files);
-    } catch(e) { console.error(`[PDF] Error reading __dirname:`, e); }
-
+    // --- Logo Loading Logic ---
+    let logoBuffer = null;
     const potentialPaths = [
         path.join(__dirname, 'logo_nomina.png'),
-        path.join(process.cwd(), 'logo_nomina.png'),
         path.join(__dirname, 'public', 'logo_nomina.png'),
+        path.join(process.cwd(), 'logo_nomina.png'),
         path.join(process.cwd(), 'backend', 'logo_nomina.png')
     ];
 
-    let logoPath = null;
     for (const p of potentialPaths) {
         if (fs.existsSync(p)) {
-            logoPath = p;
-            console.log(`[PDF] Success! Logo found at: ${p}`);
-            break;
+            try {
+                logoBuffer = fs.readFileSync(p);
+                console.log(`[PDF] Success! Logo loaded from: ${p}`);
+                break;
+            } catch (e) {
+                console.error(`[PDF] Error reading logo at ${p}:`, e);
+            }
         }
     }
 
-    if (logoPath) {
-        doc.image(logoPath, 35, 35, { width: 100 });
-    } else {
-        console.warn(`[PDF] WARNING: Logo NOT found in any of these paths:`, potentialPaths);
+    if (logoBuffer) {
+        // Place logo at the very top left
+        doc.image(logoBuffer, 35, 30, { width: 140 });
     }
 
     const ML  = 30,  PW  = 555,  MID = ML + PW / 2;
@@ -881,7 +879,8 @@ function generateNominaPdf(d, res) {
            .text(String(text || ''), x, y, { width: w, align, lineBreak: false });
 
     // ═══ HEADER BOX ══════════════════════════════════════════════════════
-    const hbY = 30, hbH = 135; // Increased height from 95 to 135
+    // Shifted down (hbY = 110) to avoid overlap with a large logo
+    const hbY = 110, hbH = 95; 
     doc.rect(ML, hbY, PW, hbH).lineWidth(1.5).strokeColor(RED).stroke();
     doc.moveTo(MID, hbY).lineTo(MID, hbY + hbH).strokeColor(RED).lineWidth(1).stroke();
 
@@ -889,7 +888,7 @@ function generateNominaPdf(d, res) {
     const lValX   = lLabelX + lLabelW;
     const lValW   = MID - lValX - 6;
     const lh = 17;
-    let ly = hbY + 55; // Shifted down from hbY + 10 to hbY + 55
+    let ly = hbY + 10; // Reset to +10 since the box is already moved down
 
     const lRow = (label, val, smallLabel = false) => {
         const lFont = smallLabel ? FS_LABEL_LONG : FS_HEADER;
