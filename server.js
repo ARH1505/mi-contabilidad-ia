@@ -844,9 +844,13 @@ function generateNominaPdf(d, res) {
     res.setHeader('Content-Disposition', `attachment; filename=Nomina_${(d.nombre || 'report').replace(/ /g, '_')}.pdf`);
     doc.pipe(res);
 
-    const logoPath = path.join(__dirname, 'Logotipo color.png');
+    const logoPath = path.join(__dirname, 'logo_nomina.png');
+    console.log(`[PDF] Checking logo at: ${logoPath}`);
     if (fs.existsSync(logoPath)) {
+        console.log(`[PDF] Logo found. Inserting into PDF...`);
         doc.image(logoPath, 35, 35, { width: 100 });
+    } else {
+        console.warn(`[PDF] WARNING: Logo NOT found at ${logoPath}`);
     }
 
     const ML  = 30,  PW  = 555,  MID = ML + PW / 2;
