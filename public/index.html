@@ -356,6 +356,32 @@
                             </div>
                         </form>
                     </div>
+
+                    <!-- Historial de Nóminas Generadas -->
+                    <div style="margin-top: 28px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h3 style="font-size:15px; color:var(--accent); margin:0;"><i class="fa-solid fa-clock-rotate-left"></i> Historial de Nóminas Generadas</h3>
+                            <button id="refresh-nomina-history" class="btn-icon" title="Actualizar historial"><i class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                        <div class="glass-table-container" style="max-height: 320px; overflow-y:auto;">
+                            <table class="glass-table" style="font-size:12px;">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Fecha</th>
+                                        <th>Empleado</th>
+                                        <th>Cédula</th>
+                                        <th>Período</th>
+                                        <th class="amount">Neto</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nomina-history-body">
+                                    <tr><td colspan="7" style="text-align:center;">Cargando historial...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- View: Ayuda IA (Consultas) -->

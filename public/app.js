@@ -32,6 +32,7 @@ navLinks.forEach(link => {
         if (targetId === 'ledger-view') fetchLedger();
         if (targetId === 'puc-view') fetchPUC();
         if (targetId === 'results-view') fetchIncomeStatement();
+        if (targetId === 'nomina-view') fetchNominaHistory();
     });
 });
 
@@ -742,3 +743,65 @@ if (nominaForm) {
 
     nominaForm.addEventListener('submit', (e) => e.preventDefault());
 }
+
+// ─── Nómina History Logic ─────────────────────────────────────────────────────
+async function fetchNominaHistory() {
+    const tbody = document.getElementById('nomina-history-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><div class="typing-indicator" style="justify-content:center"><span></span><span></span><span></span></div></td></tr>';
+
+    try {
+        const res = await fetch('/api/nomina-history');
+        const data = await res.json();
+
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-secondary);">No hay nóminas generadas aún.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(row => {
+            const fecha = new Date(row.created_at).toLocaleDateString('es-CO', { year:'numeric', month:'short', day:'numeric' });
+            const neto  = parseFloat(row.neto || 0).toLocaleString('es-CO', { minimumFractionDigits:2 });
+            const periodo = `${row.periodo_desde || ''} → ${row.periodo_hasta || ''}`;
+            return `
+                <tr>
+                    <td><b>#${row.id}</b></td>
+                    <td>${fecha}</td>
+                    <td style="font-weight:600">${row.nombre || ''}</td>
+                    <td>${row.cedula || ''}</td>
+                    <td style="font-size:11px">${periodo}</td>
+                    <td class="amount" style="color:var(--success); font-weight:600">$${neto}</td>
+                    <td>
+                        <button class="btn-icon" style="width:28px;height:28px;font-size:11px;color:#ef4444;"
+                            onclick="deleteNominaHistory(${row.id})" title="Eliminar registro">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="color:#ef4444;text-align:center;">Error cargando historial: ${e.message}</td></tr>`;
+    }
+}
+
+window.deleteNominaHistory = async (id) => {
+    if (!confirm(`¿Deseas eliminar el registro de nómina #${id}?`)) return;
+    try {
+        const res = await fetch(`/api/nomina-history/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('Registro de nómina eliminado.');
+            fetchNominaHistory();
+        } else {
+            const data = await res.json();
+            showToast(data.error || 'Error al eliminar', true);
+        }
+    } catch (e) {
+        showToast('Error de conexión', true);
+    }
+};
+
+const refreshNominaHistoryBtn = document.getElementById('refresh-nomina-history');
+if (refreshNominaHistoryBtn) refreshNominaHistoryBtn.addEventListener('click', fetchNominaHistory);
+
+// Load history on initial page load too
+fetchNominaHistory();

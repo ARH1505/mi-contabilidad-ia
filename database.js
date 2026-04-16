@@ -119,6 +119,32 @@ function initDb() {
         ];
         puc.forEach(account => stmt.run(account));
         stmt.finalize();
+
+        // Create nomina_history table
+        db.run(`CREATE TABLE IF NOT EXISTS nomina_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            created_at TEXT NOT NULL,
+            nombre TEXT,
+            cedula TEXT,
+            periodo_desde TEXT,
+            periodo_hasta TEXT,
+            liquidacion_nro TEXT,
+            nro TEXT,
+            nit TEXT,
+            sueldo REAL,
+            auxilio_transporte REAL,
+            horas_extra REAL,
+            otros_ingresos REAL,
+            cesantias REAL,
+            int_cesantias REAL,
+            fondo_salud REAL,
+            fondo_pension REAL,
+            otras_deducciones REAL,
+            total_ingresos REAL,
+            total_deducciones REAL,
+            neto REAL
+        )`);
+
         console.log("PUC accounts synchronized.");
     });
 }
