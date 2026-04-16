@@ -866,8 +866,15 @@ function generateNominaPdf(d, res) {
     }
 
     if (logoBuffer) {
-        // Place logo at the very top left
-        doc.image(logoBuffer, 35, 30, { width: 140 });
+        try {
+            console.log(`[PDF] Attempting to insert logo buffer (size: ${logoBuffer.length} bytes)`);
+            doc.image(logoBuffer, 35, 30, { width: 140 });
+            console.log(`[PDF] Logo insertion method called successfully.`);
+        } catch (imgErr) {
+            console.error(`[PDF] CRITICAL ERROR inserting logo:`, imgErr);
+        }
+    } else {
+        console.warn(`[PDF] WARNING: No logo buffer found to insert.`);
     }
 
     const ML  = 30,  PW  = 555,  MID = ML + PW / 2;
