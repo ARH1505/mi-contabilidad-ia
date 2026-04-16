@@ -772,6 +772,10 @@ async function fetchNominaHistory() {
                     <td style="font-size:11px">${periodo}</td>
                     <td class="amount" style="color:var(--success); font-weight:600">$${neto}</td>
                     <td>
+                        <button class="btn-icon" style="width:28px;height:28px;font-size:11px;color:var(--accent);"
+                            onclick="downloadNominaHistory(${row.id})" title="Descargar PDF">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
                         <button class="btn-icon" style="width:28px;height:28px;font-size:11px;color:#ef4444;"
                             onclick="deleteNominaHistory(${row.id})" title="Eliminar registro">
                             <i class="fa-solid fa-trash"></i>
@@ -783,6 +787,10 @@ async function fetchNominaHistory() {
         tbody.innerHTML = `<tr><td colspan="7" style="color:#ef4444;text-align:center;">Error cargando historial: ${e.message}</td></tr>`;
     }
 }
+
+window.downloadNominaHistory = (id) => {
+    window.open(`/api/nomina-history/${id}/download`, '_blank');
+};
 
 window.deleteNominaHistory = async (id) => {
     if (!confirm(`¿Deseas eliminar el registro de nómina #${id}?`)) return;

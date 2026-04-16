@@ -810,6 +810,154 @@ En cualquiera de estos eventos, EL ARRENDADOR queda expresamente facultada para:
 });
 
 // ─── Generate Nómina PDF + save to history ───────────────────────────────────
+// ─── PDF Generation Helper for Nómina ────────────────────────────────────────
+function generateNominaPdf(d, res) {
+    const n   = (v) => parseFloat(v) || 0;
+    const fmt = (v) => n(v).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const sueldo           = n(d.sueldo);
+    const auxilioTrans     = n(d.auxilioTransporte || d.auxilio_transporte);
+    const horasExtra       = n(d.horasExtra || d.horas_extra);
+    const otrosIngresos    = n(d.otrosIngresos || d.otros_ingresos);
+    const cesantias        = n(d.cesantias);
+    const intCesantias     = n(d.intCesantias || d.int_cesantias);
+    const fondoSalud       = n(d.fondoSalud || d.fondo_salud);
+    const fondoPension     = n(d.fondoPension || d.fondo_pension);
+    const otrasDeducciones = n(d.otrasDeducciones || d.otras_deducciones);
+
+    const sueldoQ        = sueldo / 2;
+    const auxilioQ       = auxilioTrans / 2;
+    const fondoSaludQ    = fondoSalud / 2;
+    const fondoPensionQ  = fondoPension / 2;
+    const otrasDeducQ    = otrasDeducciones / 2;
+    const horasExtraQ    = horasExtra;
+    const otrosIngresosQ = otrosIngresos;
+    const cesantiasQ     = cesantias;
+    const intCesantiasQ  = intCesantias;
+
+    const totalIngresos    = sueldoQ + auxilioQ + horasExtraQ + otrosIngresosQ + cesantiasQ + intCesantiasQ;
+    const totalDeducciones = fondoSaludQ + fondoPensionQ + otrasDeducQ;
+    const neto             = totalIngresos - totalDeducciones;
+
+    const doc = new PDFDocument({ margin: 30, size: 'LETTER', layout: 'portrait' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Nomina_${(d.nombre || 'report').replace(/ /g, '_')}.pdf`);
+    doc.pipe(res);
+
+    const ML  = 30,  PW  = 555,  MID = ML + PW / 2;
+    const RED = '#c0392b', BLACK = '#000000', LGRAY = '#dddddd';
+    const FS_SMALL = 8, FS_HEADER = 10, FS_LABEL_LONG = 8;
+
+    const cell = (font, size, color, text, x, y, w, align = 'left') =>
+        doc.font(font).fontSize(size).fillColor(color)
+           .text(String(text || ''), x, y, { width: w, align, lineBreak: false });
+
+    // ═══ HEADER BOX ══════════════════════════════════════════════════════
+    const hbY = 30, hbH = 95;
+    doc.rect(ML, hbY, PW, hbH).lineWidth(1.5).strokeColor(RED).stroke();
+    doc.moveTo(MID, hbY).lineTo(MID, hbY + hbH).strokeColor(RED).lineWidth(1).stroke();
+
+    const lLabelX = ML + 6, lLabelW = 140;
+    const lValX   = lLabelX + lLabelW;
+    const lValW   = MID - lValX - 6;
+    const lh = 17;
+    let ly = hbY + 10;
+
+    const lRow = (label, val, smallLabel = false) => {
+        const lFont = smallLabel ? FS_LABEL_LONG : FS_HEADER;
+        cell('Helvetica-Bold', lFont,     BLACK, label, lLabelX, ly, lLabelW);
+        cell('Helvetica',      FS_HEADER, BLACK, val,   lValX,   ly, lValW);
+        ly += lh;
+    };
+
+    lRow('Nit:',                        d.nit || '');
+    lRow('Liquidación de Nómina Nro.',  d.liquidacionNro || d.liquidacion_nro || '', true);
+    lRow('Cédula :',                    d.cedula || '');
+    lRow('Período del:',                d.periodoDesde || d.periodo_desde || '');
+
+    const rLabelX = MID + 6, rLabelW = 62;
+    const rValX   = rLabelX + rLabelW;
+    const rValW   = ML + PW - rValX - 6;
+    let ry = hbY + 10;
+
+    const rRow = (label, val) => {
+        cell('Helvetica-Bold', FS_HEADER, BLACK, label, rLabelX, ry, rLabelW);
+        cell('Helvetica',      FS_HEADER, BLACK, val,   rValX,   ry, rValW);
+        ry += lh;
+    };
+    rRow('Nro.',   String(d.nro || '1'));
+    rRow('Nombre', String(d.nombre || '').toUpperCase());
+    ry += lh;
+    rRow('Al:',    d.periodoHasta || d.periodo_hasta || '');
+
+    const secY = hbY + hbH + 8, secH = 18, colW = PW / 2;
+    doc.rect(ML,        secY, colW, secH).lineWidth(1).strokeColor(BLACK).stroke();
+    doc.rect(ML + colW, secY, colW, secH).lineWidth(1).strokeColor(BLACK).stroke();
+    cell('Helvetica-Bold', FS_HEADER, BLACK, 'I N G R E S O S',       ML,        secY + 4, colW, 'center');
+    cell('Helvetica-Bold', FS_HEADER, BLACK, 'D E D U C C I O N E S', ML + colW, secY + 4, colW, 'center');
+
+    const shY = secY + secH, shH = 14;
+    const C_CONCEPT = 120, C_QTY = 55;
+    const C_VAL = colW - C_CONCEPT - C_QTY;
+
+    const drawSubHeader = (sx) => {
+        doc.rect(sx,                     shY, C_CONCEPT, shH).lineWidth(0.8).strokeColor(BLACK).stroke();
+        doc.rect(sx + C_CONCEPT,         shY, C_QTY,     shH).strokeColor(BLACK).stroke();
+        doc.rect(sx + C_CONCEPT + C_QTY, shY, C_VAL,     shH).strokeColor(BLACK).stroke();
+        cell('Helvetica-Bold', FS_SMALL, BLACK, 'Concepto', sx + 2,                    shY + 3, C_CONCEPT - 4);
+        cell('Helvetica-Bold', FS_SMALL, BLACK, 'Cantidad', sx + C_CONCEPT + 2,        shY + 3, C_QTY - 4, 'center');
+        cell('Helvetica-Bold', FS_SMALL, BLACK, 'Valor',    sx + C_CONCEPT + C_QTY + 2, shY + 3, C_VAL - 4, 'right');
+    };
+    drawSubHeader(ML);
+    drawSubHeader(ML + colW);
+
+    const rowH = 13;
+    let rowY = shY + shH;
+
+    const drawRow = (sx, concept, qty, val, isRed = false) => {
+        doc.rect(sx,                     rowY, C_CONCEPT, rowH).lineWidth(0.4).strokeColor(LGRAY).stroke();
+        doc.rect(sx + C_CONCEPT,         rowY, C_QTY,     rowH).strokeColor(LGRAY).stroke();
+        doc.rect(sx + C_CONCEPT + C_QTY, rowY, C_VAL,     rowH).strokeColor(LGRAY).stroke();
+        const cc = isRed ? RED : BLACK;
+        cell('Helvetica', FS_SMALL, cc,    concept || '',                sx + 2,                    rowY + 3, C_CONCEPT - 4);
+        cell('Helvetica', FS_SMALL, BLACK, qty != null ? String(qty) : '', sx + C_CONCEPT + 2,      rowY + 3, C_QTY - 4, 'right');
+        cell('Helvetica', FS_SMALL, BLACK, val != null ? fmt(val) : '',    sx + C_CONCEPT + C_QTY + 2, rowY + 3, C_VAL - 4, 'right');
+    };
+
+    const ingresosRows = [
+        { concept: 'SUELDO',               qty: 30,   val: sueldoQ },
+        { concept: 'Cesantías',             qty: null, val: cesantiasQ },
+        { concept: 'Intereses de Cesant.',  qty: null, val: intCesantiasQ },
+    ];
+    if (auxilioQ       > 0) ingresosRows.push({ concept: 'Aux. Transporte', qty: null, val: auxilioQ });
+    if (horasExtraQ    > 0) ingresosRows.push({ concept: 'Horas Extra',     qty: null, val: horasExtraQ });
+    if (otrosIngresosQ > 0) ingresosRows.push({ concept: 'Otros Ingresos',  qty: null, val: otrosIngresosQ });
+
+    const deduccionesRows = [];
+    if (fondoSaludQ   > 0) deduccionesRows.push({ concept: 'Fondo de Salud',    val: fondoSaludQ });
+    if (fondoPensionQ > 0) deduccionesRows.push({ concept: 'Fondo de Pensión',  val: fondoPensionQ });
+    if (otrasDeducQ   > 0) deduccionesRows.push({ concept: 'Otras Deducciones', val: otrasDeducQ });
+
+    const maxRows = Math.max(ingresosRows.length, deduccionesRows.length);
+    for (let i = 0; i < maxRows; i++) {
+        const ing = ingresosRows[i];
+        const ded = deduccionesRows[i];
+        drawRow(ML,        ing ? ing.concept : '', ing ? ing.qty : null, ing ? ing.val : null);
+        drawRow(ML + colW, ded ? ded.concept : '', null, ded ? ded.val : null);
+        rowY += rowH;
+    }
+
+    drawRow(ML,        'Total Ingresos',    null, totalIngresos,    true);
+    drawRow(ML + colW, 'Total Deducciones', null, totalDeducciones, true);
+    rowY += rowH;
+    drawRow(ML,        'Neto', null, neto, true);
+    drawRow(ML + colW, '', null, null);
+    rowY += rowH;
+
+    doc.moveTo(ML, rowY).lineTo(ML + PW, rowY).lineWidth(1).strokeColor(BLACK).stroke();
+    doc.end();
+}
+
 app.post('/api/generate-nomina', async (req, res) => {
     try {
         const d = req.body;
@@ -1000,6 +1148,15 @@ app.get('/api/nomina-history', (req, res) => {
     db.all(`SELECT * FROM nomina_history ORDER BY id DESC`, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
+    });
+});
+
+// ─── Nómina History: DOWNLOAD ─────────────────────────────────────────────────
+app.get('/api/nomina-history/:id/download', (req, res) => {
+    db.get(`SELECT * FROM nomina_history WHERE id = ?`, [req.params.id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Registro no encontrado.' });
+        generateNominaPdf(row, res);
     });
 });
 
