@@ -912,7 +912,7 @@ function generateNominaPdf(d, res) {
     const rLabelX = MID + 6, rLabelW = 62;
     const rValX   = rLabelX + rLabelW;
     const rValW   = ML + PW - rValX - 6;
-    let ry = hbY + 55; // Shifted down from hbY + 10 to hbY + 55
+    let ry = hbY + 10; // Reset to +10 to match left side
 
     const rRow = (label, val) => {
         cell('Helvetica-Bold', FS_HEADER, BLACK, label, rLabelX, ry, rLabelW);
