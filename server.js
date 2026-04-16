@@ -884,7 +884,7 @@ function generateNominaPdf(d, res) {
         }
         
         // Add Title next to logo
-        cell('Helvetica-Bold', 16, PURPLE, 'SOPORTE DE PAGO NÓMINA', 185, 55 + yOff, 350, 'left');
+        cell('Helvetica-Bold', 16, BLACK, 'SOPORTE DE PAGO NÓMINA', 185, 55 + yOff, 350, 'left');
 
         // ═══ HEADER BOX ══════════════════════════════════════════════════════
         const hbY = 110 + yOff, hbH = 95; 
