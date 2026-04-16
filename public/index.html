@@ -250,9 +250,9 @@
 
                 <!-- View: Nómina -->
                 <div id="nomina-view" class="view">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-shrink:0;">
                         <h2 style="margin:0;"><i class="fa-solid fa-file-invoice-dollar"></i> Liquidación de Nómina</h2>
-                        <button id="btn-add-employee" class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="openEmployeeModal()">
+                        <button id="btn-add-employee" class="btn-secondary" style="font-size:12px; padding:6px 12px; width:auto; margin:0;" onclick="openEmployeeModal()">
                             <i class="fa-solid fa-user-plus"></i> Agregar Empleado
                         </button>
                     </div>
@@ -364,13 +364,13 @@
                     </div>
 
                     <!-- Historial de Nóminas Generadas -->
-                    <div style="margin-top: 28px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h3 style="font-size:15px; color:var(--accent); margin:0;"><i class="fa-solid fa-clock-rotate-left"></i> Historial de Nóminas Generadas</h3>
-                            <button id="refresh-nomina-history" class="btn-icon" title="Actualizar historial"><i class="fa-solid fa-rotate-right"></i></button>
+                    <div style="margin-top: 15px; flex-shrink:0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <h3 style="font-size:14px; color:var(--accent); margin:0;"><i class="fa-solid fa-clock-rotate-left"></i> Historial</h3>
+                            <button id="refresh-nomina-history" class="btn-icon" style="width:32px; height:32px;" title="Actualizar historial"><i class="fa-solid fa-rotate-right"></i></button>
                         </div>
-                        <div class="glass-table-container" style="max-height: 320px; overflow-y:auto;">
-                            <table class="glass-table" style="font-size:12px;">
+                        <div class="glass-table-container" style="max-height: 180px; overflow-y:auto;">
+                            <table class="glass-table" style="font-size:11px;">
                                 <thead>
                                     <tr>
                                         <th>#</th>
