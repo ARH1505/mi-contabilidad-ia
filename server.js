@@ -844,13 +844,32 @@ function generateNominaPdf(d, res) {
     res.setHeader('Content-Disposition', `attachment; filename=Nomina_${(d.nombre || 'report').replace(/ /g, '_')}.pdf`);
     doc.pipe(res);
 
-    const logoPath = path.join(__dirname, 'logo_nomina.png');
-    console.log(`[PDF] Checking logo at: ${logoPath}`);
-    if (fs.existsSync(logoPath)) {
-        console.log(`[PDF] Logo found. Inserting into PDF...`);
+    // DEBUG: List files to help find the logo in Railway
+    try {
+        const files = fs.readdirSync(__dirname);
+        console.log(`[PDF] Files in __dirname (${__dirname}):`, files);
+    } catch(e) { console.error(`[PDF] Error reading __dirname:`, e); }
+
+    const potentialPaths = [
+        path.join(__dirname, 'logo_nomina.png'),
+        path.join(process.cwd(), 'logo_nomina.png'),
+        path.join(__dirname, 'public', 'logo_nomina.png'),
+        path.join(process.cwd(), 'backend', 'logo_nomina.png')
+    ];
+
+    let logoPath = null;
+    for (const p of potentialPaths) {
+        if (fs.existsSync(p)) {
+            logoPath = p;
+            console.log(`[PDF] Success! Logo found at: ${p}`);
+            break;
+        }
+    }
+
+    if (logoPath) {
         doc.image(logoPath, 35, 35, { width: 100 });
     } else {
-        console.warn(`[PDF] WARNING: Logo NOT found at ${logoPath}`);
+        console.warn(`[PDF] WARNING: Logo NOT found in any of these paths:`, potentialPaths);
     }
 
     const ML  = 30,  PW  = 555,  MID = ML + PW / 2;
