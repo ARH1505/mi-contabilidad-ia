@@ -810,6 +810,220 @@ En cualquiera de estos eventos, EL ARRENDADOR queda expresamente facultada para:
     }
 });
 
+// ─── Generate Nómina PDF ──────────────────────────────────────────────────────
+app.post('/api/generate-nomina', async (req, res) => {
+    try {
+        const d = req.body;
+
+        // Numeric helpers
+        const n = (v) => parseFloat(v) || 0;
+        const fmt = (v) => {
+            const num = n(v);
+            return num.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        // Derived values
+        const sueldoQuincenal = n(d.sueldo) / 2;
+        const diasTrabajados  = 30; // período quincenal se representa como 30 unidades en el comprobante
+
+        const totalIngresos = sueldoQuincenal
+            + n(d.auxilioTransporte)
+            + n(d.horasExtra)
+            + n(d.otrosIngresos)
+            + n(d.cesantias)
+            + n(d.intCesantias);
+
+        const totalDeducciones = n(d.fondoSalud) + n(d.fondoPension) + n(d.otrasDeducciones);
+        const neto = totalIngresos - totalDeducciones;
+
+        // PDF setup – LETTER landscape gives enough width
+        const doc = new PDFDocument({ margin: 30, size: 'LETTER', layout: 'portrait' });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=nomina.pdf');
+        doc.pipe(res);
+
+        // ── Layout constants ──────────────────────────────────────────────────
+        const ML  = 30;          // margin left
+        const PW  = 555;         // printable width
+        const MID = ML + PW / 2; // centre x
+
+        // ── Colours ───────────────────────────────────────────────────────────
+        const RED   = '#c0392b';
+        const BLACK = '#000000';
+        const LGRAY = '#dddddd';
+
+        // ── Fonts & sizes ────────────────────────────────────────────────────
+        const FS_SMALL  = 8;
+        const FS_NORMAL = 9;
+        const FS_HEADER = 10;
+
+        // ═════════════════════════════════════════════════════════════════════
+        // HEADER BOX  (red-bordered rectangle matching the photo)
+        // ═════════════════════════════════════════════════════════════════════
+        const hbY  = 30;
+        const hbH  = 90;
+        doc.rect(ML, hbY, PW, hbH).lineWidth(1.5).strokeColor(RED).stroke();
+
+        // Vertical divider in the middle of the header box
+        doc.moveTo(MID, hbY).lineTo(MID, hbY + hbH).strokeColor(RED).lineWidth(1).stroke();
+
+        // ── Left column of header ─────────────────────────────────────────
+        const leftX  = ML + 6;
+        const leftW  = PW / 2 - 12;
+        let   ly     = hbY + 8;
+        const lh     = 14; // line height
+
+        const headerLine = (label, value, yPos) => {
+            doc.font('Helvetica-Bold').fontSize(FS_HEADER).fillColor(BLACK)
+               .text(label, leftX, yPos, { width: 115, continued: true });
+            doc.font('Helvetica').fontSize(FS_HEADER).fillColor(BLACK)
+               .text(value || '', { width: leftW - 115 });
+        };
+
+        headerLine('Nit:',                    d.nit || '',         ly); ly += lh;
+        headerLine('Liquidación de Nómina Nro.', d.liquidacionNro || '', ly); ly += lh;
+        headerLine('Cédula :',                d.cedula || '',      ly); ly += lh;
+        headerLine('Período del:',            d.periodoDesde || '', ly);
+
+        // ── Right column of header ────────────────────────────────────────
+        const rightX = MID + 6;
+        const rightW = PW / 2 - 12;
+        let   ry     = hbY + 8;
+
+        const headerRight = (label, value, yPos) => {
+            doc.font('Helvetica-Bold').fontSize(FS_HEADER).fillColor(BLACK)
+               .text(label, rightX, yPos, { width: 55, continued: true });
+            doc.font('Helvetica').fontSize(FS_HEADER).fillColor(BLACK)
+               .text(value || '', { width: rightW - 55 });
+        };
+
+        headerRight('Nro.',  String(d.nro || '1'),                    ry); ry += lh;
+        headerRight('Nombre', String(d.nombre || '').toUpperCase(),   ry); ry += lh;
+        // blank row to align with Cédula on the left
+        ry += lh;
+        headerRight('Al:',   d.periodoHasta || '',                    ry);
+
+        // ═════════════════════════════════════════════════════════════════════
+        // SECTION HEADERS  (INGRESOS | DEDUCCIONES)
+        // ═════════════════════════════════════════════════════════════════════
+        const secY  = hbY + hbH + 8;
+        const secH  = 18;
+        const colW  = PW / 2;
+
+        // Left header cell – INGRESOS
+        doc.rect(ML, secY, colW, secH).lineWidth(1).strokeColor(BLACK).stroke();
+        doc.font('Helvetica-Bold').fontSize(FS_HEADER).fillColor(BLACK)
+           .text('I N G R E S O S', ML, secY + 4, { width: colW, align: 'center' });
+
+        // Right header cell – DEDUCCIONES
+        doc.rect(ML + colW, secY, colW, secH).lineWidth(1).strokeColor(BLACK).stroke();
+        doc.font('Helvetica-Bold').fontSize(FS_HEADER).fillColor(BLACK)
+           .text('D E D U C C I O N E S', ML + colW, secY + 4, { width: colW, align: 'center' });
+
+        // ═════════════════════════════════════════════════════════════════════
+        // SUB-HEADER ROW (Concepto | Cantidad | Valor  ×2)
+        // ═════════════════════════════════════════════════════════════════════
+        const shY  = secY + secH;
+        const shH  = 14;
+
+        // Column widths within each half
+        const C_CONCEPT = 120;
+        const C_QTY     = 55;
+        const C_VAL     = colW - C_CONCEPT - C_QTY;
+
+        const drawSubHeader = (startX) => {
+            doc.rect(startX, shY, C_CONCEPT, shH).stroke();
+            doc.rect(startX + C_CONCEPT, shY, C_QTY, shH).stroke();
+            doc.rect(startX + C_CONCEPT + C_QTY, shY, C_VAL, shH).stroke();
+
+            doc.font('Helvetica-Bold').fontSize(FS_SMALL).fillColor(BLACK);
+            doc.text('Concepto',  startX + 2,               shY + 3, { width: C_CONCEPT - 4 });
+            doc.text('Cantidad',  startX + C_CONCEPT + 2,   shY + 3, { width: C_QTY - 4, align: 'center' });
+            doc.text('Valor',     startX + C_CONCEPT + C_QTY + 2, shY + 3, { width: C_VAL - 4, align: 'right' });
+        };
+
+        drawSubHeader(ML);
+        drawSubHeader(ML + colW);
+
+        // ═════════════════════════════════════════════════════════════════════
+        // DATA ROWS
+        // ═════════════════════════════════════════════════════════════════════
+        const rowH = 13;
+        let rowY   = shY + shH;
+
+        // Helper: draw one row on left (ingresos) or right (deducciones) side
+        const drawRow = (startX, concept, qty, val, isRedConcept = false) => {
+            // Draw borders
+            doc.rect(startX, rowY, C_CONCEPT, rowH).lineWidth(0.5).strokeColor(LGRAY).stroke();
+            doc.rect(startX + C_CONCEPT, rowY, C_QTY, rowH).strokeColor(LGRAY).stroke();
+            doc.rect(startX + C_CONCEPT + C_QTY, rowY, C_VAL, rowH).strokeColor(LGRAY).stroke();
+
+            // Draw text
+            const color = isRedConcept ? RED : BLACK;
+            doc.font('Helvetica').fontSize(FS_SMALL).fillColor(color)
+               .text(concept || '', startX + 2, rowY + 3, { width: C_CONCEPT - 4 });
+            doc.font('Helvetica').fontSize(FS_SMALL).fillColor(BLACK)
+               .text(qty != null ? String(qty) : '', startX + C_CONCEPT + 2, rowY + 3, { width: C_QTY - 4, align: 'right' });
+            doc.font('Helvetica').fontSize(FS_SMALL).fillColor(BLACK)
+               .text(val != null ? fmt(val) : '', startX + C_CONCEPT + C_QTY + 2, rowY + 3, { width: C_VAL - 4, align: 'right' });
+        };
+
+        // Build ingresos rows array
+        const ingresosRows = [
+            { concept: 'SUELDO',               qty: diasTrabajados, val: sueldoQuincenal },
+            { concept: 'Cesantías',             qty: null,           val: n(d.cesantias) },
+            { concept: 'Intereses de Cesant.',  qty: null,           val: n(d.intCesantias) },
+        ];
+        if (n(d.auxilioTransporte) > 0) ingresosRows.push({ concept: 'Aux. Transporte', qty: null, val: n(d.auxilioTransporte) });
+        if (n(d.horasExtra) > 0)        ingresosRows.push({ concept: 'Horas Extra',      qty: null, val: n(d.horasExtra) });
+        if (n(d.otrosIngresos) > 0)     ingresosRows.push({ concept: 'Otros Ingresos',   qty: null, val: n(d.otrosIngresos) });
+
+        // Build deducciones rows array
+        const deduccionesRows = [];
+        if (n(d.fondoSalud) > 0)        deduccionesRows.push({ concept: 'Fondo de Salud',   qty: null, val: n(d.fondoSalud) });
+        if (n(d.fondoPension) > 0)      deduccionesRows.push({ concept: 'Fondo de Pensión', qty: null, val: n(d.fondoPension) });
+        if (n(d.otrasDeducciones) > 0)  deduccionesRows.push({ concept: 'Otras Deducciones', qty: null, val: n(d.otrasDeducciones) });
+
+        // Total number of data rows (excluding totals)
+        const maxRows = Math.max(ingresosRows.length, deduccionesRows.length);
+
+        for (let i = 0; i < maxRows; i++) {
+            const ing = ingresosRows[i];
+            const ded = deduccionesRows[i];
+
+            if (ing) drawRow(ML,        ing.concept, ing.qty != null ? ing.qty : '', ing.val);
+            else     drawRow(ML,        '', '', null);
+
+            if (ded) drawRow(ML + colW, ded.concept, '', ded.val);
+            else     drawRow(ML + colW, '', '', null);
+
+            rowY += rowH;
+        }
+
+        // ── Totals rows ───────────────────────────────────────────────────
+        // Total Ingresos (red label)
+        drawRow(ML,        'Total Ingresos', '', totalIngresos, true);
+        drawRow(ML + colW, 'Total Deducciones', '', totalDeducciones, true);
+        rowY += rowH;
+
+        // Neto (only on left; right side empty)
+        drawRow(ML,        'Neto', '', neto, true);
+        drawRow(ML + colW, '', '', null);
+        rowY += rowH;
+
+        // ═════════════════════════════════════════════════════════════════════
+        // Bottom border line for the table
+        // ═════════════════════════════════════════════════════════════════════
+        doc.moveTo(ML, rowY).lineTo(ML + PW, rowY).lineWidth(1).strokeColor(BLACK).stroke();
+
+        doc.end();
+
+    } catch (err) {
+        console.error('ERROR /api/generate-nomina:', err);
+        if (!res.headersSent) res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

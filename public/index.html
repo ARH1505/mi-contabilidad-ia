@@ -39,6 +39,10 @@
                     <i class="fa-solid fa-file-invoice"></i>
                     <span>Generar Documentos</span>
                 </li>
+                <li data-view="nomina-view">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>Nómina</span>
+                </li>
                 <li data-view="help-view">
                     <i class="fa-solid fa-circle-question"></i>
                     <span>Consultas Contables</span>
@@ -238,6 +242,116 @@
                                 </button>
                                 <button type="button" class="btn-primary" id="generate-auth-btn" style="flex:1; min-width:200px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
                                     <i class="fa-solid fa-shield-halved"></i> Autorización de Datos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- View: Nómina -->
+                <div id="nomina-view" class="view">
+                    <div class="view-header docs-header">
+                        <h2>Liquidación de Nómina Quincenal</h2>
+                        <small>Completa los datos del empleado y genera el comprobante de nómina en PDF.</small>
+                    </div>
+
+                    <div class="glass-form-container">
+                        <form id="nomina-form" class="docs-form">
+                            <!-- Datos de la empresa / encabezado -->
+                            <h3 style="margin-bottom:12px; font-size:14px; color:var(--accent); border-bottom:1px solid var(--glass-border); padding-bottom:8px;"><i class="fa-solid fa-building"></i> Datos de la Empresa</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>NIT de la Empresa</label>
+                                    <input type="text" id="nom-nit" placeholder="Ej: 80.000.000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Liquidación Nro.</label>
+                                    <input type="text" id="nom-liquidacion-nro" placeholder="Ej: Nómina Mes de Enero" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Número de Comprobante</label>
+                                    <input type="number" id="nom-nro" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quincena</label>
+                                    <select id="nom-quincena">
+                                        <option value="1">Primera (01 al 15)</option>
+                                        <option value="2">Segunda (16 al fin de mes)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Mes y Año</label>
+                                    <input type="month" id="nom-mes-anio" required>
+                                </div>
+                            </div>
+
+                            <!-- Datos del empleado -->
+                            <h3 style="margin:16px 0 12px; font-size:14px; color:var(--accent); border-bottom:1px solid var(--glass-border); padding-bottom:8px;"><i class="fa-solid fa-user"></i> Datos del Empleado</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Cédula del Empleado</label>
+                                    <input type="text" id="nom-cedula" placeholder="Ej: 475.260" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nombre del Empleado</label>
+                                    <input type="text" id="nom-nombre" placeholder="Nombre completo" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Sueldo Básico Mensual ($)</label>
+                                    <input type="number" id="nom-sueldo" value="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Ingresos -->
+                            <h3 style="margin:16px 0 12px; font-size:14px; color:#10b981; border-bottom:1px solid var(--glass-border); padding-bottom:8px;"><i class="fa-solid fa-plus-circle"></i> Ingresos Adicionales</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Aux. de Transporte ($)</label>
+                                    <input type="number" id="nom-auxilio" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Horas Extra ($)</label>
+                                    <input type="number" id="nom-horas-extra" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Otros Ingresos ($)</label>
+                                    <input type="number" id="nom-otros-ingresos" value="0">
+                                </div>
+                            </div>
+
+                            <!-- Deducciones -->
+                            <h3 style="margin:16px 0 12px; font-size:14px; color:#ef4444; border-bottom:1px solid var(--glass-border); padding-bottom:8px;"><i class="fa-solid fa-minus-circle"></i> Deducciones</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Fondo de Salud ($)</label>
+                                    <input type="number" id="nom-salud" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Fondo de Pensión ($)</label>
+                                    <input type="number" id="nom-pension" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Otras Deducciones ($)</label>
+                                    <input type="number" id="nom-otras-deducciones" value="0">
+                                </div>
+                            </div>
+
+                            <!-- Prestaciones -->
+                            <h3 style="margin:16px 0 12px; font-size:14px; color:#f59e0b; border-bottom:1px solid var(--glass-border); padding-bottom:8px;"><i class="fa-solid fa-briefcase"></i> Prestaciones Sociales (informativo)</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Cesantías ($)</label>
+                                    <input type="number" id="nom-cesantias" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Intereses de Cesantías ($)</label>
+                                    <input type="number" id="nom-int-cesantias" value="0">
+                                </div>
+                            </div>
+
+                            <div class="form-actions" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
+                                <button type="button" class="btn-primary" id="generate-nomina-btn" style="flex:1; min-width:200px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i> Generar Comprobante de Nómina
                                 </button>
                             </div>
                         </form>

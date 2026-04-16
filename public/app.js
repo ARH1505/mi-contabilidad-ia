@@ -10,6 +10,7 @@ const titles = {
     'puc-view': { title: 'Plan Único de Cuentas (PUC)', sub: 'Listado oficial de cuentas contables de Colombia.' },
     'results-view': { title: 'Estado de Resultados', sub: 'Análisis de Ingresos, Gastos, Costos y Utilidad del Ejercicio.' },
     'docs-view': { title: 'Generador de Documentos', sub: 'Crea informes de reserva y contratos en PDF automáticamente.' },
+    'nomina-view': { title: 'Liquidación de Nómina', sub: 'Genera comprobantes de nómina quincenal en formato PDF oficial.' },
     'help-view': { title: 'Asesoría Contable', sub: 'Haz consultas tributarias y contables libres al agente experto.' }
 };
 
@@ -662,4 +663,82 @@ if (bookingForm) {
     
     // Prevent default form submit
     bookingForm.addEventListener('submit', (e) => e.preventDefault());
+}
+
+// --- Nómina Logic ---
+const nominaForm = document.getElementById('nomina-form');
+if (nominaForm) {
+    const generateNominaBtn = document.getElementById('generate-nomina-btn');
+
+    // Helper to get last day of month
+    const lastDayOfMonth = (year, month) => new Date(year, month, 0).getDate();
+
+    generateNominaBtn.addEventListener('click', async () => {
+        const mesAnio = document.getElementById('nom-mes-anio').value;
+        if (!mesAnio) return showToast('Selecciona el mes y año', true);
+
+        const [year, month] = mesAnio.split('-').map(Number);
+        const quincena = document.getElementById('nom-quincena').value;
+
+        let periodoDesde, periodoHasta;
+        if (quincena === '1') {
+            periodoDesde = `${year}/${String(month).padStart(2,'0')}/01`;
+            periodoHasta = `${year}/${String(month).padStart(2,'0')}/15`;
+        } else {
+            const ultimo = lastDayOfMonth(year, month);
+            periodoDesde = `${year}/${String(month).padStart(2,'0')}/16`;
+            periodoHasta = `${year}/${String(month).padStart(2,'0')}/${ultimo}`;
+        }
+
+        const formData = {
+            nit: document.getElementById('nom-nit').value,
+            liquidacionNro: document.getElementById('nom-liquidacion-nro').value,
+            nro: document.getElementById('nom-nro').value,
+            cedula: document.getElementById('nom-cedula').value,
+            nombre: document.getElementById('nom-nombre').value,
+            sueldo: parseFloat(document.getElementById('nom-sueldo').value) || 0,
+            auxilioTransporte: parseFloat(document.getElementById('nom-auxilio').value) || 0,
+            horasExtra: parseFloat(document.getElementById('nom-horas-extra').value) || 0,
+            otrosIngresos: parseFloat(document.getElementById('nom-otros-ingresos').value) || 0,
+            fondoSalud: parseFloat(document.getElementById('nom-salud').value) || 0,
+            fondoPension: parseFloat(document.getElementById('nom-pension').value) || 0,
+            otrasDeducciones: parseFloat(document.getElementById('nom-otras-deducciones').value) || 0,
+            cesantias: parseFloat(document.getElementById('nom-cesantias').value) || 0,
+            intCesantias: parseFloat(document.getElementById('nom-int-cesantias').value) || 0,
+            periodoDesde,
+            periodoHasta
+        };
+
+        const originalHtml = generateNominaBtn.innerHTML;
+        generateNominaBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
+        generateNominaBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/generate-nomina', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) throw new Error('Error generando la nómina');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Nomina_${formData.nombre.replace(/ /g,'_')}_${periodoDesde.replace(/\//g,'-')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showToast('Comprobante de nómina generado con éxito');
+        } catch (error) {
+            console.error(error);
+            showToast('Error al generar el comprobante de nómina', true);
+        } finally {
+            generateNominaBtn.innerHTML = originalHtml;
+            generateNominaBtn.disabled = false;
+        }
+    });
+
+    nominaForm.addEventListener('submit', (e) => e.preventDefault());
 }
