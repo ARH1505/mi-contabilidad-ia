@@ -822,126 +822,122 @@ app.post('/api/generate-nomina', async (req, res) => {
             return num.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
 
-        // Derived values
-        const sueldoQuincenal = n(d.sueldo) / 2;
-        const diasTrabajados  = 30; // período quincenal se representa como 30 unidades en el comprobante
+        // ── Quincenal calculations ──────────────────────────────────────────
+        // Monthly values divided by 2 for the 15-day period
+        const sueldoQ        = n(d.sueldo) / 2;
+        const auxilioQ       = n(d.auxilioTransporte) / 2;
+        const fondoSaludQ    = n(d.fondoSalud) / 2;
+        const fondoPensionQ  = n(d.fondoPension) / 2;
+        const otrasDeducQ    = n(d.otrasDeducciones) / 2;
+        // Horas extra y otros ingresos se ingresan ya como valor quincenal
+        const horasExtraQ    = n(d.horasExtra);
+        const otrosIngresosQ = n(d.otrosIngresos);
+        // Prestaciones: valor informativo, se ingresa directo
+        const cesantiasQ     = n(d.cesantias);
+        const intCesantiasQ  = n(d.intCesantias);
 
-        const totalIngresos = sueldoQuincenal
-            + n(d.auxilioTransporte)
-            + n(d.horasExtra)
-            + n(d.otrosIngresos)
-            + n(d.cesantias)
-            + n(d.intCesantias);
+        const totalIngresos    = sueldoQ + auxilioQ + horasExtraQ + otrosIngresosQ + cesantiasQ + intCesantiasQ;
+        const totalDeducciones = fondoSaludQ + fondoPensionQ + otrasDeducQ;
+        const neto             = totalIngresos - totalDeducciones;
 
-        const totalDeducciones = n(d.fondoSalud) + n(d.fondoPension) + n(d.otrasDeducciones);
-        const neto = totalIngresos - totalDeducciones;
-
-        // PDF setup – LETTER landscape gives enough width
+        // PDF setup
         const doc = new PDFDocument({ margin: 30, size: 'LETTER', layout: 'portrait' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=nomina.pdf');
         doc.pipe(res);
 
         // ── Layout constants ──────────────────────────────────────────────────
-        const ML  = 30;          // margin left
-        const PW  = 555;         // printable width
-        const MID = ML + PW / 2; // centre x
+        const ML  = 30;
+        const PW  = 555;
+        const MID = ML + PW / 2;
 
-        // ── Colours ───────────────────────────────────────────────────────────
         const RED   = '#c0392b';
         const BLACK = '#000000';
         const LGRAY = '#dddddd';
 
-        // ── Fonts & sizes ────────────────────────────────────────────────────
         const FS_SMALL  = 8;
-        const FS_NORMAL = 9;
         const FS_HEADER = 10;
 
-        // ═════════════════════════════════════════════════════════════════════
-        // HEADER BOX  (red-bordered rectangle matching the photo)
-        // ═════════════════════════════════════════════════════════════════════
-        const hbY  = 30;
-        const hbH  = 90;
-        doc.rect(ML, hbY, PW, hbH).lineWidth(1.5).strokeColor(RED).stroke();
+        // ─── Safe text helper ────────────────────────────────────────────────
+        // Uses absolute x,y + lineBreak:false to NEVER let pdfkit move doc.y
+        const cell = (font, size, color, text, x, y, w, align = 'left') => {
+            doc.font(font).fontSize(size).fillColor(color)
+               .text(String(text || ''), x, y, { width: w, align, lineBreak: false });
+        };
 
-        // Vertical divider in the middle of the header box
+        // ═════════════════════════════════════════════════════════════════════
+        // HEADER BOX  (red-bordered rectangle)
+        // ═════════════════════════════════════════════════════════════════════
+        const hbY = 30;
+        const hbH = 90;
+        doc.rect(ML, hbY, PW, hbH).lineWidth(1.5).strokeColor(RED).stroke();
         doc.moveTo(MID, hbY).lineTo(MID, hbY + hbH).strokeColor(RED).lineWidth(1).stroke();
 
-        // ── Left column of header ─────────────────────────────────────────
-        const leftX  = ML + 6;
-        const leftW  = PW / 2 - 12;
-        let   ly     = hbY + 8;
-        const lh     = 14; // line height
+        // ── LEFT column ───────────────────────────────────────────────────────
+        const lLabelX = ML + 6;
+        const lLabelW = 132;
+        const lValX   = lLabelX + lLabelW;
+        const lValW   = MID - lValX - 4;
+        const lh      = 16;
+        let   ly      = hbY + 10;
 
-        const headerLine = (label, value, yPos) => {
-            doc.font('Helvetica-Bold').fontSize(FS_HEADER).fillColor(BLACK)
-               .text(label, leftX, yPos, { width: 115, continued: true });
-            doc.font('Helvetica').fontSize(FS_HEADER).fillColor(BLACK)
-               .text(value || '', { width: leftW - 115 });
+        const lRow = (label, val) => {
+            cell('Helvetica-Bold', FS_HEADER, BLACK, label, lLabelX, ly, lLabelW);
+            cell('Helvetica',      FS_HEADER, BLACK, val,   lValX,   ly, lValW);
+            ly += lh;
         };
+        lRow('Nit:',                       d.nit || '');
+        lRow('Liquidación de Nómina Nro.', d.liquidacionNro || '');
+        lRow('Cédula :',                   d.cedula || '');
+        lRow('Período del:',               d.periodoDesde || '');
 
-        headerLine('Nit:',                    d.nit || '',         ly); ly += lh;
-        headerLine('Liquidación de Nómina Nro.', d.liquidacionNro || '', ly); ly += lh;
-        headerLine('Cédula :',                d.cedula || '',      ly); ly += lh;
-        headerLine('Período del:',            d.periodoDesde || '', ly);
+        // ── RIGHT column ──────────────────────────────────────────────────────
+        const rLabelX = MID + 6;
+        const rLabelW = 60;
+        const rValX   = rLabelX + rLabelW;
+        const rValW   = ML + PW - rValX - 4;
+        let   ry      = hbY + 10;
 
-        // ── Right column of header ────────────────────────────────────────
-        const rightX = MID + 6;
-        const rightW = PW / 2 - 12;
-        let   ry     = hbY + 8;
-
-        const headerRight = (label, value, yPos) => {
-            doc.font('Helvetica-Bold').fontSize(FS_HEADER).fillColor(BLACK)
-               .text(label, rightX, yPos, { width: 55, continued: true });
-            doc.font('Helvetica').fontSize(FS_HEADER).fillColor(BLACK)
-               .text(value || '', { width: rightW - 55 });
+        const rRow = (label, val) => {
+            cell('Helvetica-Bold', FS_HEADER, BLACK, label, rLabelX, ry, rLabelW);
+            cell('Helvetica',      FS_HEADER, BLACK, val,   rValX,   ry, rValW);
+            ry += lh;
         };
-
-        headerRight('Nro.',  String(d.nro || '1'),                    ry); ry += lh;
-        headerRight('Nombre', String(d.nombre || '').toUpperCase(),   ry); ry += lh;
-        // blank row to align with Cédula on the left
-        ry += lh;
-        headerRight('Al:',   d.periodoHasta || '',                    ry);
+        rRow('Nro.',   String(d.nro || '1'));
+        rRow('Nombre', String(d.nombre || '').toUpperCase());
+        ry += lh; // blank row (aligns with Cédula)
+        rRow('Al:',    d.periodoHasta || '');
 
         // ═════════════════════════════════════════════════════════════════════
         // SECTION HEADERS  (INGRESOS | DEDUCCIONES)
         // ═════════════════════════════════════════════════════════════════════
-        const secY  = hbY + hbH + 8;
-        const secH  = 18;
-        const colW  = PW / 2;
+        const secY = hbY + hbH + 8;
+        const secH = 18;
+        const colW = PW / 2;
 
-        // Left header cell – INGRESOS
-        doc.rect(ML, secY, colW, secH).lineWidth(1).strokeColor(BLACK).stroke();
-        doc.font('Helvetica-Bold').fontSize(FS_HEADER).fillColor(BLACK)
-           .text('I N G R E S O S', ML, secY + 4, { width: colW, align: 'center' });
-
-        // Right header cell – DEDUCCIONES
+        doc.rect(ML,        secY, colW, secH).lineWidth(1).strokeColor(BLACK).stroke();
         doc.rect(ML + colW, secY, colW, secH).lineWidth(1).strokeColor(BLACK).stroke();
-        doc.font('Helvetica-Bold').fontSize(FS_HEADER).fillColor(BLACK)
-           .text('D E D U C C I O N E S', ML + colW, secY + 4, { width: colW, align: 'center' });
+        cell('Helvetica-Bold', FS_HEADER, BLACK, 'I N G R E S O S',       ML,        secY + 4, colW, 'center');
+        cell('Helvetica-Bold', FS_HEADER, BLACK, 'D E D U C C I O N E S', ML + colW, secY + 4, colW, 'center');
 
         // ═════════════════════════════════════════════════════════════════════
-        // SUB-HEADER ROW (Concepto | Cantidad | Valor  ×2)
+        // SUB-HEADER ROW  (Concepto | Cantidad | Valor  ×2)
         // ═════════════════════════════════════════════════════════════════════
-        const shY  = secY + secH;
-        const shH  = 14;
+        const shY = secY + secH;
+        const shH = 14;
 
-        // Column widths within each half
         const C_CONCEPT = 120;
         const C_QTY     = 55;
         const C_VAL     = colW - C_CONCEPT - C_QTY;
 
         const drawSubHeader = (startX) => {
-            doc.rect(startX, shY, C_CONCEPT, shH).stroke();
-            doc.rect(startX + C_CONCEPT, shY, C_QTY, shH).stroke();
-            doc.rect(startX + C_CONCEPT + C_QTY, shY, C_VAL, shH).stroke();
-
-            doc.font('Helvetica-Bold').fontSize(FS_SMALL).fillColor(BLACK);
-            doc.text('Concepto',  startX + 2,               shY + 3, { width: C_CONCEPT - 4 });
-            doc.text('Cantidad',  startX + C_CONCEPT + 2,   shY + 3, { width: C_QTY - 4, align: 'center' });
-            doc.text('Valor',     startX + C_CONCEPT + C_QTY + 2, shY + 3, { width: C_VAL - 4, align: 'right' });
+            doc.rect(startX,                      shY, C_CONCEPT, shH).lineWidth(0.8).strokeColor(BLACK).stroke();
+            doc.rect(startX + C_CONCEPT,          shY, C_QTY,    shH).strokeColor(BLACK).stroke();
+            doc.rect(startX + C_CONCEPT + C_QTY, shY, C_VAL,    shH).strokeColor(BLACK).stroke();
+            cell('Helvetica-Bold', FS_SMALL, BLACK, 'Concepto', startX + 2,                     shY + 3, C_CONCEPT - 4);
+            cell('Helvetica-Bold', FS_SMALL, BLACK, 'Cantidad', startX + C_CONCEPT + 2,          shY + 3, C_QTY - 4, 'center');
+            cell('Helvetica-Bold', FS_SMALL, BLACK, 'Valor',    startX + C_CONCEPT + C_QTY + 2, shY + 3, C_VAL - 4, 'right');
         };
-
         drawSubHeader(ML);
         drawSubHeader(ML + colW);
 
@@ -949,40 +945,34 @@ app.post('/api/generate-nomina', async (req, res) => {
         // DATA ROWS
         // ═════════════════════════════════════════════════════════════════════
         const rowH = 13;
-        let rowY   = shY + shH;
+        let rowY = shY + shH;
 
-        // Helper: draw one row on left (ingresos) or right (deducciones) side
-        const drawRow = (startX, concept, qty, val, isRedConcept = false) => {
-            // Draw borders
-            doc.rect(startX, rowY, C_CONCEPT, rowH).lineWidth(0.5).strokeColor(LGRAY).stroke();
-            doc.rect(startX + C_CONCEPT, rowY, C_QTY, rowH).strokeColor(LGRAY).stroke();
-            doc.rect(startX + C_CONCEPT + C_QTY, rowY, C_VAL, rowH).strokeColor(LGRAY).stroke();
+        const drawRow = (startX, concept, qty, val, isRed = false) => {
+            doc.rect(startX,                      rowY, C_CONCEPT, rowH).lineWidth(0.4).strokeColor(LGRAY).stroke();
+            doc.rect(startX + C_CONCEPT,          rowY, C_QTY,    rowH).strokeColor(LGRAY).stroke();
+            doc.rect(startX + C_CONCEPT + C_QTY, rowY, C_VAL,    rowH).strokeColor(LGRAY).stroke();
 
-            // Draw text
-            const color = isRedConcept ? RED : BLACK;
-            doc.font('Helvetica').fontSize(FS_SMALL).fillColor(color)
-               .text(concept || '', startX + 2, rowY + 3, { width: C_CONCEPT - 4 });
-            doc.font('Helvetica').fontSize(FS_SMALL).fillColor(BLACK)
-               .text(qty != null ? String(qty) : '', startX + C_CONCEPT + 2, rowY + 3, { width: C_QTY - 4, align: 'right' });
-            doc.font('Helvetica').fontSize(FS_SMALL).fillColor(BLACK)
-               .text(val != null ? fmt(val) : '', startX + C_CONCEPT + C_QTY + 2, rowY + 3, { width: C_VAL - 4, align: 'right' });
+            const cc = isRed ? RED : BLACK;
+            cell('Helvetica', FS_SMALL, cc,    concept || '',                    startX + 2,                     rowY + 3, C_CONCEPT - 4);
+            cell('Helvetica', FS_SMALL, BLACK, qty != null ? String(qty) : '',  startX + C_CONCEPT + 2,          rowY + 3, C_QTY - 4, 'right');
+            cell('Helvetica', FS_SMALL, BLACK, val != null ? fmt(val) : '',     startX + C_CONCEPT + C_QTY + 2, rowY + 3, C_VAL - 4, 'right');
         };
 
-        // Build ingresos rows array
+        // ── Ingresos rows ─────────────────────────────────────────────────────
         const ingresosRows = [
-            { concept: 'SUELDO',               qty: diasTrabajados, val: sueldoQuincenal },
-            { concept: 'Cesantías',             qty: null,           val: n(d.cesantias) },
-            { concept: 'Intereses de Cesant.',  qty: null,           val: n(d.intCesantias) },
+            { concept: 'SUELDO',              qty: 30,   val: sueldoQ },
+            { concept: 'Cesantías',           qty: null, val: cesantiasQ },
+            { concept: 'Intereses de Cesant.',qty: null, val: intCesantiasQ },
         ];
-        if (n(d.auxilioTransporte) > 0) ingresosRows.push({ concept: 'Aux. Transporte', qty: null, val: n(d.auxilioTransporte) });
-        if (n(d.horasExtra) > 0)        ingresosRows.push({ concept: 'Horas Extra',      qty: null, val: n(d.horasExtra) });
-        if (n(d.otrosIngresos) > 0)     ingresosRows.push({ concept: 'Otros Ingresos',   qty: null, val: n(d.otrosIngresos) });
+        if (auxilioQ       > 0) ingresosRows.push({ concept: 'Aux. Transporte', qty: null, val: auxilioQ });
+        if (horasExtraQ    > 0) ingresosRows.push({ concept: 'Horas Extra',      qty: null, val: horasExtraQ });
+        if (otrosIngresosQ > 0) ingresosRows.push({ concept: 'Otros Ingresos',   qty: null, val: otrosIngresosQ });
 
-        // Build deducciones rows array
+        // ── Deducciones rows (valores ya divididos por 2 = quincena) ──────────
         const deduccionesRows = [];
-        if (n(d.fondoSalud) > 0)        deduccionesRows.push({ concept: 'Fondo de Salud',   qty: null, val: n(d.fondoSalud) });
-        if (n(d.fondoPension) > 0)      deduccionesRows.push({ concept: 'Fondo de Pensión', qty: null, val: n(d.fondoPension) });
-        if (n(d.otrasDeducciones) > 0)  deduccionesRows.push({ concept: 'Otras Deducciones', qty: null, val: n(d.otrasDeducciones) });
+        if (fondoSaludQ   > 0) deduccionesRows.push({ concept: 'Fondo de Salud',    val: fondoSaludQ });
+        if (fondoPensionQ > 0) deduccionesRows.push({ concept: 'Fondo de Pensión',  val: fondoPensionQ });
+        if (otrasDeducQ   > 0) deduccionesRows.push({ concept: 'Otras Deducciones', val: otrasDeducQ });
 
         // Total number of data rows (excluding totals)
         const maxRows = Math.max(ingresosRows.length, deduccionesRows.length);
