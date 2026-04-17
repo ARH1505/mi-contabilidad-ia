@@ -291,7 +291,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
         };
 
         const addLogo = () => {
-            const potentialNames = ['report_logo.png', 'logo_nomina.png', 'logo.png', 'Logotipo color.png'];
+            const potentialNames = ['logo_nomina.png', 'report_logo.png', 'logo.png', 'Logotipo color.png'];
             const potentialDirs = [
                 __dirname,
                 path.join(__dirname, 'public'),
