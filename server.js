@@ -291,9 +291,34 @@ app.post('/api/generate-booking-report', async (req, res) => {
         };
 
         const addLogo = () => {
-            const logoPath = path.join(__dirname, 'Logotipo color.png');
-            if (fs.existsSync(logoPath)) {
-                doc.image(logoPath, MARGIN_X, 25, { width: 110 });
+            const potentialNames = ['report_logo.png', 'logo_nomina.png', 'logo.png', 'Logotipo color.png'];
+            const potentialDirs = [
+                __dirname,
+                path.join(__dirname, 'public'),
+                process.cwd(),
+                path.join(process.cwd(), 'backend'),
+                path.join(process.cwd(), 'backend', 'public')
+            ];
+            
+            let logoBuffer = null;
+            for (const name of potentialNames) {
+                for (const dir of potentialDirs) {
+                    const p = path.join(dir, name);
+                    if (fs.existsSync(p)) {
+                        try {
+                            logoBuffer = fs.readFileSync(p);
+                            break;
+                        } catch (e) {}
+                    }
+                }
+                if (logoBuffer) break;
+            }
+
+            if (logoBuffer) {
+                // Using exact coordinates from working Nómina: 35, 30
+                doc.image(logoBuffer, 35, 30, { width: 140 });
+            } else {
+                console.warn('[PDF] No logo file found for booking report.');
             }
         };
 
@@ -846,22 +871,28 @@ function generateNominaPdf(d, res) {
 
     // --- Logo Loading Logic ---
     let logoBuffer = null;
-    const potentialPaths = [
-        path.join(__dirname, 'logo_nomina.png'),
-        path.join(__dirname, 'public', 'logo_nomina.png'),
-        path.join(process.cwd(), 'logo_nomina.png'),
-        path.join(process.cwd(), 'backend', 'logo_nomina.png')
+    const potentialNames = ['logo_nomina.png', 'report_logo.png', 'logo.png', 'Logotipo color.png'];
+    const potentialDirs = [
+        __dirname,
+        path.join(__dirname, 'public'),
+        process.cwd(),
+        path.join(process.cwd(), 'backend'),
+        path.join(process.cwd(), 'backend', 'public')
     ];
 
-    for (const p of potentialPaths) {
-        if (fs.existsSync(p)) {
-            try {
-                logoBuffer = fs.readFileSync(p);
-                break;
-            } catch (e) {
-                console.error(`[PDF] Error reading logo at ${p}:`, e);
+    for (const name of potentialNames) {
+        for (const dir of potentialDirs) {
+            const p = path.join(dir, name);
+            if (fs.existsSync(p)) {
+                try {
+                    logoBuffer = fs.readFileSync(p);
+                    break;
+                } catch (e) {
+                    console.error(`[PDF] Error reading logo at ${p}:`, e);
+                }
             }
         }
+        if (logoBuffer) break;
     }
 
     const ML  = 30,  PW  = 555,  MID = ML + PW / 2;
