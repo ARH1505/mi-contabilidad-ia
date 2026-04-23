@@ -453,7 +453,7 @@ app.post('/api/generate-booking-report', async (req, res) => {
 
             // Dibujamos la cabecera en texto plano pero alineado
             doc.font('Helvetica-Bold').fontSize(10).text('ARRENDADOR: ', MARGIN_X, doc.y, { continued: true });
-            doc.font('Helvetica').fontSize(10).text('ALQUILER RENTA HOUSE representado por YOJANNA YULIETH SERRANO GOMEZ identificada con cédula de ciudadanía # 1’095.827.048 de Bucaramanga, con matrícula mercantil 681907 ubicados en la CALLE. 32 # 32-64 LOCAL 11 CENTRO COMERCIAL RIVERA PLAZA barrio la Aurora, teléfonos 3165791058 – 3167583928- 6076901312', { align: 'justify' });
+            doc.font('Helvetica').fontSize(10).text('ALQUILER RENTA HOUSE representado por SANDRA MILENA GOMEZ identificada con cédula de ciudadanía # 63.513.678 de Bucaramanga, con matrícula mercantil 681907 ubicados en la CALLE. 32 # 32-64 oficina 08 CENTRO COMERCIAL RIVERA PLAZA barrio la Aurora, teléfonos 3165791058 – 3167583928- 6076901312', { align: 'justify' });
             doc.moveDown(1);
 
             drawHeaderRow('ARRENDATARIO:', String(data.nombreReserva || '').toUpperCase(), 'TIPO Y NUMERO DE ID:', `CC. ${data.ccReserva || ''}`);
@@ -639,7 +639,7 @@ En cualquiera de estos eventos, EL ARRENDADOR queda expresamente facultada para:
 
             legalText('PARÁGRAFO TERCERO:', `En todo caso, EL ARRENDADOR podrá ejercer las acciones legales necesarias para el cobro de valores adeudados y perjuicios ocasionados.`);
 
-            legalText('UNDÉCIMA. -', `Para efectos de notificaciones el ARRENDADOR recibirá notificaciones en la CALLE 32 32-64 CENTRO COMERCIAL. RIVERA PLAZA LOCAL 11`);
+            legalText('UNDÉCIMA. -', `Para efectos de notificaciones el ARRENDADOR recibirá notificaciones en la CALLE 32 32-64 CENTRO COMERCIAL. RIVERA PLAZA oficina 08`);
 
             legalText('DUODÉCIMA. - ESPACIOS EN BLANCO:', `El ARRENDATARIO faculta expresamente al ARRENDADOR para llenar en este documento los espacios en blanco`);
 
@@ -661,8 +661,8 @@ En cualquiera de estos eventos, EL ARRENDADOR queda expresamente facultada para:
             doc.font('Helvetica-Bold').fontSize(10).text('ARRENDADOR:', MARGIN_X, doc.y, { align: 'left' });
             doc.moveDown(2);
             doc.text('_________________________________', MARGIN_X, doc.y);
-            doc.font('Helvetica-Bold').text('YOJANNA YULIETH SERRANO GOMEZ', MARGIN_X, doc.y);
-            doc.text('CC 1.095.827.048', MARGIN_X, doc.y);
+            doc.font('Helvetica-Bold').text('SANDRA MILENA GOMEZ', MARGIN_X, doc.y);
+            doc.text('CC 63.513.678', MARGIN_X, doc.y);
 
             doc.moveDown(3);
             doc.font('Helvetica-Bold').text('ARRENDATARIO:', MARGIN_X, doc.y, { align: 'left' });
@@ -692,7 +692,7 @@ En cualquiera de estos eventos, EL ARRENDADOR queda expresamente facultada para:
             doc.font('Helvetica-Bold').text(nombre, { continued: true });
             doc.font('Helvetica').text(', mayor de edad, identificado con cédula de ciudadanía No.', { continued: true });
             doc.font('Helvetica-Bold').text(cc, { continued: true });
-            doc.font('Helvetica').text(', en adelante “EL TOMADOR”, por medio del presente documento manifiesto que autorizo de manera libre, expresa, voluntaria e informada a la empresa ALQUILER RENTA HOUSE, representada legalmente por Yojanna Yulieth Serrano Gómez, identificada con cédula de ciudadanía No. 1.095.827.048, para que, en cumplimiento de la Ley 1581 de 2012, el Decreto 1377 de 2013 y demás normas concordantes, realice la recolección, almacenamiento, uso, circulación, supresión y tratamiento de los datos personales que he suministrado con ocasión del contrato de arrendamiento temporal de inmueble amoblado.');
+            doc.font('Helvetica').text(', en adelante “EL TOMADOR”, por medio del presente documento manifiesto que autorizo de manera libre, expresa, voluntaria e informada a la empresa ALQUILER RENTA HOUSE, representada legalmente por Sandra Milena Gomez, identificada con cédula de ciudadanía No. 63.513.678, para que, en cumplimiento de la Ley 1581 de 2012, el Decreto 1377 de 2013 y demás normas concordantes, realice la recolección, almacenamiento, uso, circulación, supresión y tratamiento de los datos personales que he suministrado con ocasión del contrato de arrendamiento temporal de inmueble amoblado.');
 
             doc.moveDown(1);
             doc.text('La información recolectada será utilizada única y exclusivamente para los siguientes fines:');
@@ -710,7 +710,7 @@ En cualquiera de estos eventos, EL ARRENDADOR queda expresamente facultada para:
             });
 
             doc.moveDown(1);
-            doc.text('El titular de los datos declara que ha sido informado de sus derechos a conocer, actualizar, rectificar y suprimir los datos personales suministrados, así como a revocar la autorización otorgada, conforme a lo establecido en la legislación vigente, a través de solicitud escrita dirigida al correo electrónico: alquilerentahouse@gmail.com o a la dirección física: Calle 32 #32-64 centro comercial Riviera plaza local 11.', { align: 'justify', lineGap: 4 });
+            doc.text('El titular de los datos declara que ha sido informado de sus derechos a conocer, actualizar, rectificar y suprimir los datos personales suministrados, así como a revocar la autorización otorgada, conforme a lo establecido en la legislación vigente, a través de solicitud escrita dirigida al correo electrónico: alquilerentahouse@gmail.com o a la dirección física: Calle 32 #32-64 centro comercial Riviera plaza oficina 08.', { align: 'justify', lineGap: 4 });
 
             doc.moveDown(2);
             
