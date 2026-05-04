@@ -755,7 +755,7 @@ if (nominaForm) {
         }
 
         const formData = {
-            nit: document.getElementById('nomina-nit').value || '64.513.678',
+            nit: document.getElementById('nomina-nit').value || '63.513.678',
             liquidacionNro: document.getElementById('nom-liquidacion-nro').value,
             nro: document.getElementById('nom-nro').value,
             cedula: document.getElementById('nomina-cedula').value,
